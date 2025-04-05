@@ -24,6 +24,7 @@ Bmp::Bmp(const char *fileName)
    }
 }
 
+
 uchar* Bmp::getImage()
 {
   return data;
@@ -33,6 +34,12 @@ int Bmp::getWidth(void)
 {
   return width;
 }
+
+void Bmp::setPosition(int x, int y){
+   posX = x;
+   posY = y;
+}
+
 
 int Bmp::getHeight(void)
 {
@@ -70,7 +77,7 @@ void Bmp::render()
 
         //Dividir pos 3 pois a funcao CV::color() recebe valores entre [0, 1]
         CV::color(data[pos] / 255.0, data[pos+1] / 255.0, data[pos+2]/ 255.0);
-        CV::point(x/3, y);
+        CV::point(x/3 + posX , y + posY);
       //   CV::circleFill(x/3, y, 3, 3);
      }
   }

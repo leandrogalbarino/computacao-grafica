@@ -44,6 +44,7 @@
 		<Unit filename="src/Armazenamento.h" />
 		<Unit filename="src/Bmp.h" />
 		<Unit filename="src/Botao.h" />
+		<Unit filename="src/Camada.h" />
 		<Unit filename="src/Checkbox.h" />
 		<Unit filename="src/Menu.h" />
 		<Unit filename="src/Vector2.h" />

@@ -5,8 +5,8 @@
 #include <vector>
 struct Forma {
     enum Tipo { RETANGULO, CIRCULO } tipo;
-    float x1, y1, x2, y2; // Coordenadas para retângulo
-    float raio;           // Para círculo
+    float x1, y1, x2, y2; // Coordenadas para retï¿½ngulo
+    float raio;           // Para cï¿½rculo
     float r, g, b;        // Cor da forma
 
 
@@ -16,7 +16,7 @@ struct Forma {
     Forma(Tipo _tipo, float _x1, float _y1, float _x2, float _y2, float _raio, float _r, float _g, float _b)
         : tipo(_tipo), x1(_x1), y1(_y1), x2(_x2), y2(_y2), raio(_raio), r(_r), g(_g), b(_b) {}
 
-    // Métodos estáticos para criar formas
+    // Mï¿½todos estï¿½ticos para criar formas
     static Forma criarRetangulo(float x1, float y1, float x2, float y2, float r, float g, float b) {
         return Forma(RETANGULO, x1, y1, x2, y2, 0, r, g, b);
     }
@@ -27,9 +27,9 @@ struct Forma {
     void render() const {
         CV::color(r, g, b); // Define a cor da forma
         if (tipo == RETANGULO) {
-            CV::rectFill(x1, y1, x2, y2); // Desenha o retângulo
+            CV::rectFill(x1, y1, x2, y2); // Desenha o retï¿½ngulo
         } else if (tipo == CIRCULO) {
-            CV::circleFill(x1, y1, raio, 20); // Desenha o círculo
+            CV::circleFill(x1, y1, raio, 20); // Desenha o cï¿½rculo
         }
     }
 };
@@ -62,12 +62,12 @@ public:
             formas[quantidade] = forma;
             quantidade++;
         } else {
-            printf("Capacidade máxima atingida.\n");
+            printf("Capacidade mï¿½xima atingida.\n");
         }
     }
 
 
-    // Métodos para adicionar formas específicas
+    // Mï¿½todos para adicionar formas especï¿½ficas
     void adicionarRetangulo(float x1, float y1, float x2, float y2, float r, float g, float b) {
         Forma ret =  (Forma::criarRetangulo(x1, y1, x2, y2, r, g, b));
         adicionarForma(ret);

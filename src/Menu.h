@@ -5,134 +5,175 @@
 #include "botao.h"
 #include "armazenamento.h"
 #include <cmath>  // Necessário para sqrt() e pow()
+#include "LayerManager.h"
+#include <string.h>
+// #define NUM_BUTTONS 10
+
 typedef struct{
-    int x_ini;
-    int y_ini;
-    int x_fim;
-    int y_fim;
-} Coordenadas;
+    int x;
+    int y;
+    int _x;
+    int _y;
+} Coordinates;
+
+typedef struct{
+  float r;
+  float g;
+  float b;
+} Color;
+
+std::string img[] = {
+  "t1/images/img3.bmp",
+  "t1/images/img1.bmp",
+  "t1/images/img2.bmp"
+};
 
 class Menu{
-int operacao;
-int largura;
-int altura;
-int numBotoes;
-Botao** botoes;
-Coordenadas coordenadas;
-Armazenamento *armazenamento;
+protected:
+  int operation;
+  int posX;
+  int posY;
+  int posX2;
+  int posY2;
+  Botao** buttons;
+  int numButtons;
+  Coordinates coord;
+  Color color;
+  // Armazenamento *armazenamento;
+  // armazenamento = new Armazenamento(20);
+  // armazenamento->renderizarFormas();
+
 
 
 public:
-    Menu(int largura, int altura)
+    Menu(int posX, int posY,int posX2, int posY2, int numButtons)
     {
-        this->largura = largura;
-        this->altura = altura;
-        coordenadas.x_fim = coordenadas.y_fim = coordenadas.x_ini = coordenadas.y_ini = 0;
-        operacao = 0;
-        numBotoes = 10;
-        botoes  = new Botao*[numBotoes];
-        armazenamento = new Armazenamento(20);
+      if(numButtons < 3){
+        numButtons = 3;
+      }
 
-        int x= 5, y = 5;
-        for (int i = 0; i < numBotoes;i ++){
-          botoes[i] = new Botao(x , i*35 + y, 30, 30);
-        }
-    }
+      this->posX = posX;
+      this->posY = posY;
+      this->posX2 = posX2;
+      this->posY2 = posY2;
+      this->numButtons = numButtons;
 
-    void funcao(int func){
-        operacao = func;
-    }
+      color.r = color.g = color.b = 0;
+      coord._x = coord._y = coord.x = coord.y = 0;
+      operation = -1;
 
+      buttons = new Botao *[numButtons];
 
-    void renderBotoes() {
-      for (int i = 0; i < numBotoes; i++) {
-          botoes[i]->Render();
+      int baseX = posX + 10;
+      int baseY = posY + 10;
+      int buttonSize = 30;
+      int spacing = 10;
+
+      for (int i = 0; i < numButtons; i++)
+      {
+        int bx = (posX2 - posX > posY2 - posY ) ? baseX + i * (buttonSize + spacing): baseX;
+        int by = (posX2 - posX > posY2 - posY) ? baseY : baseY + i *(buttonSize + spacing);
+        buttons[i] = new Botao(bx, by, 30, 30);
       }
     }
 
-    void colisaoBotoes(int x,int y){
+    void setColor(int r, int g, int b){
+      color.r = r/255;
+      color.g = g/255;
+      color.b = b/255;
+    }
 
-        for(int i = 0; i < numBotoes;i++){
-            if(botoes[i]->Colidiu(x,y)){
-                funcao(i);
+    void renderButtons() {
+      for (int i = 0; i < numButtons; i++) {
+          buttons[i]->Render();
+      }
+    }
+
+    void collisionButtons(int x,int y){
+        for(int index = 0; index < numButtons;index++){
+            if(buttons[index]->Colidiu(x,y)){
+                operation = index;
+                functions();
             }
         }
     }
 
-    void render(){
-        CV::color(0.35,0.35,0.35);
-        CV::rectFill(0, 0, largura, altura);
-        renderBotoes();
-        armazenamento->renderizarFormas();
+    virtual void render(){
+        CV::color(color.r,color.g,color.b);
+        CV::rectFill(posX, posY, posX2, posY2); // Criar menu;
+        renderButtons();
+
+        // armazenamento->renderizarFormas();
     }
 
-    void setCoordenadas(int x_ini, int y_ini,int x_fim, int y_fim){
-        coordenadas.x_ini = x_ini;
-        coordenadas.y_ini = y_ini;
-        coordenadas.x_fim = x_fim;
-        coordenadas.y_fim = y_fim;
+    void setCoord(int x, int y,int _x, int _y){
+        coord.x = x;
+        coord.y = y;
+        coord._x = _x;
+        coord._y = _y;
     }
+    virtual void functions(){}
 
-    void armazenar(){
-        float raio;
-        float centroX;
-        float centroY;
-        switch (operacao)
-        {
-            case 0:
-              break;
-            case 1:
-                armazenamento->adicionarRetangulo(coordenadas.x_ini, coordenadas.y_ini, coordenadas.x_fim, coordenadas.y_fim, 1, 0, 0);
-              break;
-            case 2:
-                raio = sqrt(pow(coordenadas.x_fim - coordenadas.x_ini, 2) + pow(coordenadas.y_fim - coordenadas.y_ini, 2)) / 2;
-                armazenamento->adicionarCirculo(coordenadas.x_fim, coordenadas.y_fim, raio, 0, 1, 1 );
-
-              break;
-            case 3:
-              break;
-            default:
-              break;
-        }
-    }
-
-
-
-    void criarRetangulo(){
-        //std::cout << "Criando um retângulo.." << std :: env1;
-        CV::color(1, 0, 0);  // Cor vermelha
-        CV::rectFill(coordenadas.x_ini, coordenadas.y_ini, coordenadas.x_fim, coordenadas.y_fim);
-    }
-    // Função para criar um círculo
-    void criarCirculo() {
-      //std::cout << "Criando um círculo..." << std::endl;
-      CV::color(0, 1, 0);  // Cor verde
-      CV::circleFill(100, 100, 30, 20);
-    }
-
-      // Função para apagar elementos (exemplo)
+    // Função para apagar elementos (exemplo)
     void apagar() {
         CV::clear(1, 1, 1);  // Limpa a tela (branco)
     }
-
-    void executar(){
-        switch (operacao)
-        {
-            case 0:
-              break;
-            case 1:
-              criarRetangulo();
-              return;
-            case 2:
-              criarCirculo();
-              return;
-            case 3:
-              apagar();
-              return;
-            default:
-              break;
-        }
-    }
 };
 
+class MenuTop : public Menu{
+
+  
+  void functions() override{
+    float raio;
+    float centroX;
+    float centroY;
+    switch (operation)
+    {
+        case -1:
+          break;
+        case 0:
+            // armazenamento->adicionarRetangulo(coordenadas.x, coordenadas.y, coordenadas._x, coordenadas._y, 1, 0, 0);
+          break;
+        case 1:
+            // raio = sqrt(pow(coordenadas._x - coordenadas.x, 2) + pow(coordenadas._y - coordenadas.y, 2)) / 2;
+            // armazenamento->adicionarCirculo(coordenadas.x, coordenadas.y, raio, 0, 1, 1 );
+          break;
+        case 2:
+          break;
+        default:
+          break;
+    }
+  }
+};
+
+class MenuLayer : public Menu{
+public:
+  LayerManager *layerManager;
+
+  MenuLayer(int posX, int posY ,int posX2, int posY2, int numButtons) : Menu(posX, posY, posX2, posY2, numButtons){
+    layerManager = new LayerManager();
+  }
+
+  void render() override{
+    CV::color(color.r,color.g,color.b);
+    CV::rectFill(posX, posY, posX2, posY2); // Criar menu;
+    renderButtons();
+    layerManager->drawLayers();
+  }
+
+  void functions() override{
+    if(operation == -1){
+      return;
+    }
+    if(operation == 0 || operation == 1 || operation == 2){
+      layerManager->addLayer(img[operation].c_str(), 300, 300);
+      return;
+    }
+
+    // switch (operation)
+    // {
+
+    // }
+  }
+};
 #endif

@@ -55,7 +55,9 @@ private:
    void load(const char *fileName);
 
 public:
+   int posX, posY;
    Bmp(const char *fileName);
+   void setPosition(int x, int y);
    uchar* getImage();
    int    getWidth(void);
    int    getHeight(void);

@@ -177,3 +177,81 @@
 	"gl_canvas2d.h"
 	<vector>
 
+1743192444 source:c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\bmp.cpp
+	"Bmp.h"
+	<string.h>
+
+1743192086 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\bmp.h
+	<stdio.h>
+	<stdlib.h>
+	"gl_canvas2d.h"
+
+1743191509 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\gl_canvas2d.h
+	<stdio.h>
+	<stdlib.h>
+	<math.h>
+	<string.h>
+	<GL/glut.h>
+	<GL/freeglut_ext.h>
+	"Vector2.h"
+
+1632060799 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\include\gl\glut.h
+	"freeglut_std.h"
+
+1632060797 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\include\gl\freeglut_std.h
+	<windows.h>
+	<EGL/egl.h>
+	<GLES/gl.h>
+	<GLES2/gl2.h>
+	<OpenGL/gl.h>
+	<OpenGL/glu.h>
+	<GL/gl.h>
+	<GL/glu.h>
+	<stdlib.h>
+
+1632060794 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\include\gl\freeglut_ext.h
+	<stdarg.h>
+
+1589217858 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\vector2.h
+
+1743189179 source:c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\gl_canvas2d.cpp
+	"gl_canvas2d.h"
+	<GL/glut.h>
+
+1743692664 source:c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\main.cpp
+	<GL/glut.h>
+	<GL/freeglut_ext.h>
+	<math.h>
+	<stdio.h>
+	<stdlib.h>
+	"gl_canvas2d.h"
+	"bmp.h"
+	"checkbox.h"
+	"Menu.h"
+	<iostream>
+	<string>
+	"Camada.h"
+
+1743283986 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\checkbox.h
+	"gl_canvas2d.h"
+	"bmp.h"
+
+1743683044 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\menu.h
+	"gl_canvas2d.h"
+	"botao.h"
+	"armazenamento.h"
+	<cmath>
+
+1743284489 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\botao.h
+	"gl_canvas2d.h"
+
+1743291016 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\armazenamento.h
+	"gl_canvas2d.h"
+	<vector>
+
+1743693404 c:\users\samsung\documents\meus-projetos\algoritmos-c\computacao-grafica\cg\__demos\demos\cg-trabalho1\src\camada.h
+	"gl_canvas2d.h"
+	<string>
+	"bmp.h"
+	<iostream>
+
