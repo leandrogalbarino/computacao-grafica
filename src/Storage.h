@@ -1,5 +1,5 @@
-#ifndef __ARMAZENAMENTO_H__
-#define __ARMAZENAMENTO_H__
+#ifndef __STORAGE_H__
+#define __STORAGE_H__
 
 #include "gl_canvas2d.h"
 #include <vector>
@@ -35,48 +35,43 @@ struct Forma {
 };
 
 
-class Armazenamento{
+class Storage{
 //;std::vector<Forma> formas;
-Forma *formas;
-int quantidade;
-int capacidade;
-
-
+Forma *shapes;
 
 public:
-    // Renderizar todas as formas armazenadas
-    Armazenamento(int capMax){
-        capacidade = capMax;
-        quantidade = 0;
-        formas = new Forma[capacidade];
+int quantity;
+int capacity;
+    Storage(int capMax){
+        capacity = capMax;
+        quantity = 0;
+        shapes = new Forma[capacity];
     }
 
-    void renderizarFormas() const {
-        for (int i = 0; i < quantidade;i++) {
-            formas[i].render();
+    void renderShapes() const {
+        for (int i = 0; i < quantity;i++) {
+            shapes[i].render();
         }
     }
 
-    void adicionarForma(Forma forma) {
-        if (quantidade < capacidade) {
-            formas[quantidade] = forma;
-            quantidade++;
+    void addShape(Forma forma) {
+        if (quantity < capacity) {
+            shapes[quantity] = forma;
+            quantity++;
         } else {
-            printf("Capacidade m�xima atingida.\n");
+            printf("Capacidade máxima atingida.\n");
         }
     }
 
-
-    // M�todos para adicionar formas espec�ficas
-    void adicionarRetangulo(float x1, float y1, float x2, float y2, float r, float g, float b) {
+    void addRet(float x1, float y1, float x2, float y2, float r, float g, float b) {
         Forma ret =  (Forma::criarRetangulo(x1, y1, x2, y2, r, g, b));
-        adicionarForma(ret);
+        addShape(ret);
     }
 
-    void adicionarCirculo(float x, float y, float raio, float r, float g, float b) {
+    void addCircle(float x, float y, float radius , float r, float g, float b) {
         //formas.push_back(Forma::criarCirculo(x, y, raio, r, g, b));
-        Forma circ =(Forma::criarCirculo(x, y, raio, r, g, b));
-        adicionarForma(circ);
+        Forma circ =(Forma::criarCirculo(x, y, radius, r, g, b));
+        addShape(circ);
 
     }
 
