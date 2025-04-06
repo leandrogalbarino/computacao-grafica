@@ -61,10 +61,22 @@ void menusHandleClick(int x, int y, int _x, int _y)
     menuSide->handleClick(x, y, _x, _y);
 }
 
+void backgroundColor()
+{
+    float r = 40.0/255.0;
+    float g = 42.0/255.0;
+    float b = 46.0/255.0;
+    CV::color(r, g, b);
+    CV::rectFill(0, 0, 1920, 1080);
+    
+}
+
 void menusRender()
 {
+    backgroundColor();
     menuLayer->render();
     menuSide->render();
+    menuLayer->renderLayers();
 }
 
 void render()

@@ -1,81 +1,123 @@
-#ifndef __STORAGE_H__
-#define __STORAGE_H__
+#ifndef STORAGE_H
+#define STORAGE_H
 
 #include "gl_canvas2d.h"
 #include <vector>
-struct Forma {
-    enum Tipo { RETANGULO, CIRCULO } tipo;
-    float x1, y1, x2, y2; // Coordenadas para ret�ngulo
-    float raio;           // Para c�rculo
-    float r, g, b;        // Cor da forma
+#include <algorithm>
+#include "Shape.h"
 
-
-        Forma() : tipo(RETANGULO), x1(0), y1(0), x2(0), y2(0), raio(0), r(0), g(0), b(0) {}
-
-    // Construtor privado para evitar ambiguidade
-    Forma(Tipo _tipo, float _x1, float _y1, float _x2, float _y2, float _raio, float _r, float _g, float _b)
-        : tipo(_tipo), x1(_x1), y1(_y1), x2(_x2), y2(_y2), raio(_raio), r(_r), g(_g), b(_b) {}
-
-    // M�todos est�ticos para criar formas
-    static Forma criarRetangulo(float x1, float y1, float x2, float y2, float r, float g, float b) {
-        return Forma(RETANGULO, x1, y1, x2, y2, 0, r, g, b);
-    }
-
-    static Forma criarCirculo(float x, float y, float raio, float r, float g, float b) {
-        return Forma(CIRCULO, x, y, 0, 0, raio, r, g, b);
-    }
-    void render() const {
-        CV::color(r, g, b); // Define a cor da forma
-        if (tipo == RETANGULO) {
-            CV::rectFill(x1, y1, x2, y2); // Desenha o ret�ngulo
-        } else if (tipo == CIRCULO) {
-            CV::circleFill(x1, y1, raio, 20); // Desenha o c�rculo
-        }
-    }
-};
-
-
-class Storage{
-//;std::vector<Forma> formas;
-Forma *shapes;
+class Storage
+{
+private:
+    std::vector<Shape> shapes;
+    int x1, y1, x2, y2;
 
 public:
-int quantity;
-int capacity;
-    Storage(int capMax){
-        capacity = capMax;
-        quantity = 0;
-        shapes = new Forma[capacity];
+    Storage(int x1, int y1, int x2, int y2)
+    {
+        this->x1 = x1;
+        this->y1 = y1;
+        this->x2 = x2;
+        this->y2 = y2;
     }
 
-    void renderShapes() const {
-        for (int i = 0; i < quantity;i++) {
-            shapes[i].render();
+    void renderShapes() const
+    {
+        for (const Shape &shape : shapes)
+        {
+            shape.render();
         }
     }
 
-    void addShape(Forma forma) {
-        if (quantity < capacity) {
-            shapes[quantity] = forma;
-            quantity++;
-        } else {
-            printf("Capacidade máxima atingida.\n");
+    void addShape(const Shape &shape)
+    {
+        shapes.push_back(shape);
+    }
+
+    void addRect(int x1, int y1, int x2, int y2, float r, float g, float b)
+    {
+        if (x1 > x2)
+            std::swap(x1, x2);
+        if (y1 > y2)
+            std::swap(y1, y2);
+
+        x1 = std::max(x1, this->x1);
+        y1 = std::max(y1, this->y1);
+        x2 = std::min(x2, this->x2);
+        y2 = std::min(y2, this->y2);
+
+        if (x1 >= x2 || y1 >= y2)
+        {
+            return;
         }
+        Shape rect = Shape::createRectangle(x1, y1, x2, y2, r, g, b);
+        addShape(rect);
     }
 
-    void addRet(float x1, float y1, float x2, float y2, float r, float g, float b) {
-        Forma ret =  (Forma::criarRetangulo(x1, y1, x2, y2, r, g, b));
-        addShape(ret);
+    void addPoint(int x1, int y1, float r,float g, float b)
+    {
+        // Clamping dos pontos para os limites da área
+        x1 = std::max(this->x1, std::min(this->x2, x1));
+        y1 = std::max(this->y1, std::min(this->y2, y1));
+
+        Shape point = Shape::createPoint(x1, y1, r, g, b);
+        addShape(point);
     }
 
-    void addCircle(float x, float y, float radius , float r, float g, float b) {
-        //formas.push_back(Forma::criarCirculo(x, y, raio, r, g, b));
-        Forma circ =(Forma::criarCirculo(x, y, radius, r, g, b));
+    void addLine(int x1, int y1, int x2, int y2, float r, float g, float b)
+    {
+        // Clamping dos pontos para os limites da área
+        x1 = std::max(this->x1, std::min(this->x2, x1));
+        y1 = std::max(this->y1, std::min(this->y2, y1));
+        x2 = std::max(this->x1, std::min(this->x2, x2));
+        y2 = std::max(this->y1, std::min(this->y2, y2));
+    
+        // Se os pontos forem iguais, não é linha
+        if (x1 == x2 && y1 == y2) return;
+    
+        Shape line = Shape::createLine(x1, y1, x2,y2, r, g, b);
+        addShape(line);
+    }
+    
+
+    void addCircle(float x, float y, float radius, float r, float g, float b)
+    {
+        float maxRaioX = std::min(x - x1, x2 - x);
+        float maxRaioY = std::min(y - y1, y2 - y);
+        float maxRaio = std::min(maxRaioX, maxRaioY);
+        if (radius > maxRaio) {
+            radius = maxRaio;
+        }
+        if (radius <= 0) return;
+
+        Shape circ = Shape::createCircle(x, y, radius, r, g, b);
         addShape(circ);
-
     }
 
-};
+    bool limits(int x, int y){
+        return (x >= this->x1 && y >= this->y1 && x <= this->x2 && y <= this->y2);
+    }
+    void removeElement(int x, int y){
+        if(!limits(x,y)){
+            return;
+        }
+        for (int i = shapes.size() - 1; i >= 0; i--){
+            if (shapes[i].contains(x, y)) {
+                shapes.erase(shapes.begin() + i);
+                break;
+            }
+        }
+    }
 
+    int getShapeCount() const
+    {
+        return shapes.size();
+    }
+
+    void clear()
+    {
+        shapes.clear();
+    }
+};
 
 #endif

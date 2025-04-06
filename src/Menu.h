@@ -111,6 +111,12 @@ public:
     CV::color(color.r, color.g, color.b);
     CV::rectFill(posX, posY, posX2, posY2); // Criar menu;
     renderButtons();
+  }
+
+  
+
+  void renderLayers()
+  {
     if (layerManager)
     {
       layerManager->drawLayers();
@@ -164,16 +170,26 @@ public:
     case -1:
       break;
     case 0:
-      layerManager->addElements()->addRet(coord.x, coord.y, coord._x, coord._y, color.r, color.g, color.b);
+      layerManager->layerActive()->addRect(coord.x, coord.y, coord._x, coord._y, color.r, color.g, color.b);
       break;
     case 1:
       radius = sqrt(pow(coord._x - coord.x, 2) + pow(coord._y - coord.y, 2)) / 2;
-      layerManager->addElements()->addCircle(coord.x, coord.y, radius, color.r, color.g, color.b);
+      layerManager->layerActive()->addCircle(coord.x, coord.y, radius, color.r, color.g, color.b);
       break;
     case 2:
-      //Retangulo branco para servir como apagador!
-      layerManager->addElements()->addRet(coord.x, coord.y, coord._x, coord._y,  1.0, 1.0, 1.0);
+      layerManager->layerActive()->addLine(coord.x, coord.y, coord._x, coord._y, color.r, color.g, color.b);
       break;
+    case 3:
+      layerManager->layerActive()->addPoint(coord.x, coord.y, color.r, color.g, color.b);
+      break;
+    case 4:
+      //Ponto maior 
+      radius = 10.0;
+      layerManager->layerActive()->addCircle(coord.x, coord.y, radius, color.r, color.g, color.b);
+      break;
+    case 5:
+      //Apaga elementos adicionados seja qual for!
+      layerManager->layerActive()->removeElement(coord._x, coord._y);
     default:
       break;
     }
@@ -185,7 +201,7 @@ class MenuLayer : public Menu
 public:
   MenuLayer(int posX, int posY, int posX2, int posY2, int numButtons) : Menu(posX, posY, posX2, posY2, numButtons)
   {
-    layerManager = new LayerManager();
+    layerManager = new LayerManager(100, 50, 1150, 650);
   }
 
   LayerManager *getLayerManager()
@@ -202,7 +218,7 @@ public:
     }
     if (operation == 0 || operation == 1 || operation == 2)
     {
-      layerManager->addLayer(img[operation].c_str(), 300, 300);
+      layerManager->addLayer(img[operation].c_str(), 50, 0);
       return;
     }
     if (operation == 3 || operation == 4 || operation == 5)
