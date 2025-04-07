@@ -8,7 +8,15 @@
 #include <cmath> // Necessário para sqrt() e pow()
 #include "LayerManager.h"
 #include <string.h>
-// #define NUM_BUTTONS 10
+#include "Slider.h"
+
+#define SLIDER_LENGHT 3
+enum
+{
+  R,
+  G,
+  B
+} rgb;
 
 typedef struct
 {
@@ -41,8 +49,42 @@ protected:
   int posY2;
   Botao **buttons;
   int numButtons;
+  Slider **slider;
   Coordinates coord;
   Color color;
+
+private:
+  void createSlider()
+  {
+    slider = new Slider *[SLIDER_LENGHT];
+    for (int i = 0; i < SLIDER_LENGHT; i++)
+    {
+      slider[i] = new Slider(1285, 100 + 30 * i, 1520, 100 + 30 * i);
+    }
+  }
+  void createButtons()
+  {
+    buttons = new Botao *[numButtons];
+    int baseX = posX + 10;
+    int baseY = posY + 10;
+    int buttonSize = 30;
+    int spacing = 10;
+
+    for (int i = 0; i < numButtons; i++)
+    {
+      int bx = (posX2 - posX > posY2 - posY) ? baseX + i * (buttonSize + spacing) : baseX;
+      int by = (posX2 - posX > posY2 - posY) ? baseY : baseY + i * (buttonSize + spacing);
+      buttons[i] = new Botao(bx, by, 30, 30);
+    }
+  }
+
+  void renderButtons()
+  {
+    for (int i = 0; i < numButtons; i++)
+    {
+      buttons[i]->Render();
+    }
+  }
 
 public:
   Menu(int posX, int posY, int posX2, int posY2, int numButtons)
@@ -59,38 +101,18 @@ public:
     this->numButtons = numButtons;
     layerManager = nullptr;
 
-    color.r = color.g = color.b = 0;
     coord._x = coord._y = coord.x = coord.y = 0;
     operation = -1;
-
-    buttons = new Botao *[numButtons];
-
-    int baseX = posX + 10;
-    int baseY = posY + 10;
-    int buttonSize = 30;
-    int spacing = 10;
-
-    for (int i = 0; i < numButtons; i++)
-    {
-      int bx = (posX2 - posX > posY2 - posY) ? baseX + i * (buttonSize + spacing) : baseX;
-      int by = (posX2 - posX > posY2 - posY) ? baseY : baseY + i * (buttonSize + spacing);
-      buttons[i] = new Botao(bx, by, 30, 30);
-    }
+    color.r = color.g = color.b = 0;
+    createSlider();
+    createButtons();
   }
 
-  void setColor(int r, int g, int b)
+  void setColor()
   {
-    color.r = r / 255;
-    color.g = g / 255;
-    color.b = b / 255;
-  }
-
-  void renderButtons()
-  {
-    for (int i = 0; i < numButtons; i++)
-    {
-      buttons[i]->Render();
-    }
+    color.r = slider[R]->value;
+    color.g = slider[G]->value;
+    color.b = slider[B]->value;
   }
 
   bool collisionButtons(int x, int y)
@@ -106,15 +128,29 @@ public:
     return false;
   }
 
-  void render()
+  void renderSliderRGB()
   {
     CV::color(color.r, color.g, color.b);
-    CV::rectFill(posX, posY, posX2, posY2); // Criar menu;
-    renderButtons();
+    CV::rectFill(1380, 40, 1420, 80);
+    for (int i = 0; i < SLIDER_LENGHT; i++)
+    {
+      switch (i)
+      {
+      case R:
+        CV::color(1.0, 0, 0);
+        break;
+      case G:
+        CV::color(0, 1.0, 0);
+        break;
+      case B:
+        CV::color(0, 0, 1.0);
+        break;
+      }
+      CV::rectFill(1258, 90 + 30 * i, 1278, 110 + 30 * i);
+      slider[i]->render();
+    }
   }
-
   
-
   void renderLayers()
   {
     if (layerManager)
@@ -123,9 +159,24 @@ public:
     }
   }
 
+  void render()
+  {
+    CV::color(0, 0, 0);                     // cor do menu
+    CV::rectFill(posX, posY, posX2, posY2); // Criar menu;
+    renderButtons();
+  }
+
   void handleClick(int x, int y, int _x, int _y)
   {
     setCoord(x, y, _x, _y);
+    for (int i = 0; i < SLIDER_LENGHT; i++)
+    {
+      slider[i]->render();
+      if (slider[i]->isHovering(_x, _y))
+      {
+        slider[i]->setPointer(x); // atualiza ponteiro e valor baseado na posição do mouse
+      }
+    }
     functions();
   }
 
@@ -137,7 +188,10 @@ public:
     coord._y = _y;
   }
 
-  virtual void functions() {}
+  virtual void functions()
+  {
+    setColor();
+  }
 };
 
 class MenuFunctions : public Menu
@@ -158,6 +212,8 @@ public:
 
   void functions() override
   {
+
+    setColor();
     if (!layerManager || layerManager->getActiveLayer() == -1)
     {
       std::cout << "\nNenhuma camada selecionada!";
@@ -183,12 +239,12 @@ public:
       layerManager->layerActive()->addPoint(coord.x, coord.y, color.r, color.g, color.b);
       break;
     case 4:
-      //Ponto maior 
+      // Ponto maior
       radius = 10.0;
       layerManager->layerActive()->addCircle(coord.x, coord.y, radius, color.r, color.g, color.b);
       break;
     case 5:
-      //Apaga elementos adicionados seja qual for!
+      // Apaga elementos adicionados seja qual for!
       layerManager->layerActive()->removeElement(coord._x, coord._y);
     default:
       break;

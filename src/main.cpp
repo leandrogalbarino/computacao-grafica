@@ -59,24 +59,23 @@ void menusHandleClick(int x, int y, int _x, int _y)
 {
     menuLayer->handleClick(x, y, _x, _y);
     menuSide->handleClick(x, y, _x, _y);
+
 }
 
+// Background cinza escuro
 void backgroundColor()
 {
-    float r = 40.0/255.0;
-    float g = 42.0/255.0;
-    float b = 46.0/255.0;
-    CV::color(r, g, b);
-    CV::rectFill(0, 0, 1920, 1080);
-    
+    CV::color(0.156, 0.164, 0.18);
+    CV::rectFill(0, 0, screenWidth, screenHeight);
 }
 
 void menusRender()
 {
     backgroundColor();
-    menuLayer->render();
     menuSide->render();
+    menuLayer->render();
     menuLayer->renderLayers();
+    menuLayer->renderSliderRGB();
 }
 
 void render()
@@ -85,12 +84,12 @@ void render()
     Sleep(10); // nao eh controle de FPS. Somente um limitador de FPS.
 }
 
-// funcao chamada toda vez que uma tecla for pressionada.
+// // funcao chamada toda vez que uma tecla for pressionada.
 void keyboard(int key)
 {
 }
 
-// funcao chamada toda vez que uma tecla for liberada
+// // funcao chamada toda vez que uma tecla for liberada
 void keyboardUp(int key)
 {
 }
