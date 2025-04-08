@@ -434,6 +434,7 @@ public:
       swapDown = true;
       return true;
     }
+    return false;
   }
   void buttonsSetColor()
   {
@@ -488,7 +489,7 @@ public:
       }
       else if (swapDown)
       {
-        if (operation < layerManager->layers.size() - 1)
+        if (active < layerManager->layers.size() - 1)
         {
           std::swap(layerManager->layers[active], layerManager->layers[active + 1]);
           swapCheckButton(active, active + 1);
