@@ -435,6 +435,24 @@ public:
       return true;
     }
   }
+  void buttonsSetColor()
+  {
+    const float active_r = 1.0;
+    const float active_g = 0.0;
+    const float active_b = 0.0;
+
+    for (int i = 0; i < numButtons; i++)
+    {
+      if (i == layerManager->getActiveLayer())
+      {
+        buttons[i]->setColor(active_r, active_g, active_b);
+      }
+      else
+      {
+        buttons[i]->setDefaultColor();
+      }
+    }
+  }
 
   LayerManager *getLayerManager()
   {
@@ -455,10 +473,8 @@ public:
 
     if (active >= 0 && active < numButtons && checkBox[active])
     {
-      if (!checkBox[active]->isChecked())
-      {
-        checkBox[active]->setCheck(true);
-      }
+      buttonsSetColor();
+      checkBox[active]->setCheck(true);
 
       if (swapUp)
       {
@@ -479,9 +495,8 @@ public:
           layerManager->setActiveLayer(active + 1);
           swapDown = false;
         }
-      }      
+      }
     }
-
   }
 };
 #endif
