@@ -28,9 +28,21 @@
 #include <string>
 #include "Camada.h"
 #include "LayerManager.h"
+#include "Coordinates.h"
+
+#define BUTTONS_LAYER 3
+#define BUTTONS_SIDE 10
+ 
+// CORES PARA O FUNDO DO PROGRAMA -> Cinza escuro
+#define BACKGROUND_R 0.156
+#define BACKGROUND_G 0.164
+#define BACKGROUND_B 0.18
 
 // largura e altura inicial da tela . Alteram com o redimensionamento de tela.
 int screenWidth = 1950, screenHeight = 1080;
+
+const Coordinates CoordMenuLayer(1200, 0, 1250, screenHeight);
+Coordinates CoordMenuSide(0, 0, 50, screenHeight);
 
 // int mouseX, mouseY; //variaveis globais do mouse para poder exibir dentro da render().
 
@@ -39,9 +51,12 @@ MenuLayer *menuLayer;
 
 void menusCreate()
 {
-    menuLayer = new MenuLayer(1201, 0, 1250, 1200, 6);
-    menuSide = new MenuFunctions(0, 0, 50, 1200, 10);
+    menuLayer = new MenuLayer(CoordMenuLayer, BUTTONS_LAYER);
+    menuSide = new MenuFunctions(CoordMenuSide, BUTTONS_SIDE);
     menuSide->setLayerManager(menuLayer->getLayerManager());
+    
+    menuSide->init();
+    menuLayer->init();
 }
 void menusCollision(int x, int y)
 {
@@ -55,17 +70,16 @@ void menusCollision(int x, int y)
     }
 }
 
-void menusHandleClick(int x, int y, int _x, int _y)
+void menusHandleClick(int x1, int y1, int x2, int y2)
 {
-    menuLayer->handleClick(x, y, _x, _y);
-    menuSide->handleClick(x, y, _x, _y);
-
+    menuLayer->handleClick(x1, y1, x2, y2);
+    menuSide->handleClick(x1, y1, x2, y2);
 }
 
 // Background cinza escuro
 void backgroundColor()
 {
-    CV::color(0.156, 0.164, 0.18);
+    CV::color(BACKGROUND_R, BACKGROUND_G, BACKGROUND_B);
     CV::rectFill(0, 0, screenWidth, screenHeight);
 }
 
@@ -75,7 +89,7 @@ void menusRender()
     menuSide->render();
     menuLayer->render();
     menuLayer->renderLayers();
-    menuLayer->renderSliderRGB();
+    menuSide->renderSliderRGB();
 }
 
 void render()

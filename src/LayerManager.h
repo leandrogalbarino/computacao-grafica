@@ -4,38 +4,37 @@
 #include <vector>
 #include "Layer.h"
 #include "gl_canvas2d.h"
+#include "Coordinates.h"
+#include <iostream>
+
 
 class LayerManager
 {
 
 private:
   int activeLayer;
-  int x1, x2, y1, y2; // delimitações de desenho
+  Coordinates coords;
 
 public:
   std::vector<Layer *> layers;
 
-  LayerManager(int x1, int y1, int x2, int y2)
+  LayerManager(Coordinates coords) : coords(coords)
   {
-    this->x1 = x1;
-    this->y1 = y1;
-    this->x2 = x2;
-    this->y2 = y2;
     activeLayer = -1;
   }
 
-  void addLayer(const char *filename, int x, int y)
+  void addLayer(const char *filename, int posX, int posY)
   {
     for (int i = 0; i < layers.size(); i++)
     {
-      if (layers[i]->fileName == filename)
+      if (strcmp(layers[i]->fileName, filename) == 0)
       {
         setActiveLayer(i);
         return;
       }
     }
-    
-    Layer *newLayer = new Layer(filename, x, y);
+
+    Layer *newLayer = new Layer(filename, posX, posY, coords);
     if (!newLayer)
     {
       std::cerr << "Erro ao criar camada!" << std::endl;
@@ -49,19 +48,24 @@ public:
   {
   }
 
-  void drawBackground() {
-    int cellSize = 20;
-    for (int y = y1; y < y2; y += cellSize) {
-        for (int x = x1; x < x2; x += cellSize) {
-            bool isEven = ((x / cellSize) + (y / cellSize)) % 2 == 0;
+  void drawBackground()
+  {
+    int numDivisoes = 20; // por exemplo
+    int cellSize = (coords.x2 - coords.x1) / numDivisoes;
 
-            if (isEven)
-                CV::color(0.85, 0.85, 0.85); // cinza claro
-            else
-                CV::color(0.65, 0.65, 0.65); // cinza escuro
+    for (int y = coords.y1; y < coords.y2; y += cellSize)
+    {
+      for (int x = coords.x1; x < coords.x2; x += cellSize)
+      {
+        bool isEven = ((x / cellSize) + (y / cellSize)) % 2 == 0;
 
-            CV::rectFill(x, y, x + cellSize, y + cellSize);
-        }
+        if (isEven)
+          CV::color(0.85, 0.85, 0.85); // cinza claro
+        else
+          CV::color(0.65, 0.65, 0.65); // cinza escuro
+
+        CV::rectFill(x, y, x + cellSize, y + cellSize);
+      }
     }
   }
 
@@ -111,6 +115,7 @@ public:
       return layers[activeLayer]->storage;
     }
     std::cout << "Nenhuma camada seleciona!";
+    return nullptr;
   }
 };
 

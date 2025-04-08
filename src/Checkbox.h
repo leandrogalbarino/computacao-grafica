@@ -3,42 +3,45 @@
 
 #include "gl_canvas2d.h"
 #include "bmp.h"
+#include "Coordinates.h"
 
-class CheckBox{
-  float altura, largura, x, y;
-    bool check;
+class CheckBox
+{
+  bool check;
+  Coordinates coords;
+
 public:
-  CheckBox(){
-     altura  = 15;
-     largura = 15;
-     x = 0;
-     y = 0;
-     check = true;
+  CheckBox(Coordinates coords) : coords(coords)
+  {
+    check = false;
   }
-
-  void setPosition(float _x, float _y){
-     x = _x;
-     y = _y;
-  }
-
   void render()
   {
-      CV::color(0,0,0);
-      CV::rect(x, y, x + largura, y + altura);
-      CV::color(0, 0, 0);
-      if(check == true){
-        CV::text(x+4,y+12,"X");
-      }
-  }
-
-  void click(float _x, float _y){
-    if(_x > x && _x < x+largura  && _y > y &&  _y < y+altura){
-        check = (check == false) ? true : false;
+    if (check == true)
+    {
+      CV::color(0, 1, 0);
+    }else{
+      CV::color(1, 1, 1);
     }
+    CV::rectFill(coords.x1, coords.y1, coords.x2, coords.y2);
   }
 
+  void setCheck(bool value){
+    check = value;
+  }
+
+  bool click(float x, float y)
+  {
+    if (x >= coords.x1 && x <= coords.x2 && y >= coords.y1 && y <= coords.y2)
+    {
+      check = !check;
+      return true;
+    }
+    return false;
+  }
+  
+  bool isChecked() const { return check; }
 
 };
-
 
 #endif

@@ -7,36 +7,34 @@
 #include <iostream>
 #include "storage.h"
 
+
+
 class Layer
 {
 public:
   Bmp *image;
   const char *fileName;
   int width, height;
-  bool visible; // Se a camada está visível
-  int posX, posY;     // Posição na tela
-  int x, y;     // Posição na tela
-  int _x, _y;
+  bool visible;   // Se a camada está visível
+  int posX, posY; // Posição na tela
+  Coordinates coords;
   Storage *storage;
 
-  Layer(const char *fileName, int posX, int posY)
+  Layer(const char *fileName, int posX, int posY, Coordinates coords) : coords(coords)
   {
     image = nullptr;
     this->posX = posX;
     this->posY = posY;
-    x = 100;
-    y = 50;
-    _x = 1150;
-    _y = 650;
+
     visible = true;
-    storage = new Storage(x,y,_x,_y);
-    image = new Bmp(fileName);
+    storage = new Storage(coords);
     this->fileName = fileName;
+    image = new Bmp(fileName);
 
     if (image != nullptr)
     {
       std::cout << "imagem adicionada!";
-      image->setPosition(x + posX, y + posY);
+      image->setPosition(coords.x1 + posX, coords.y1 + posY);
       image->convertBGRtoRGB();
       image->getImage();
     }

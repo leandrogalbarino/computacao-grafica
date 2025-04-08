@@ -8,23 +8,43 @@
 #include <cmath> // Necessário para sqrt() e pow()
 #include "LayerManager.h"
 #include <string.h>
+#include "Checkbox.h"
 #include "Slider.h"
+#include "Coordinates.h"
+
+#define SLIDER_START_X 1285
+#define SLIDER_END_X 1520
+#define SLIDER_START_Y 100
+#define SLIDER_SPACING_Y 30
+
+#define COLOR_PREVIEW_X1 1380
+#define COLOR_PREVIEW_Y1 40
+#define COLOR_PREVIEW_X2 1420
+#define COLOR_PREVIEW_Y2 80
+
+#define SLIDER_INDICATOR_X1 1258
+#define SLIDER_INDICATOR_X2 1278
+#define SLIDER_INDICATOR_Y_START 90
+
+#define BUTTON_SIZE 30
+#define BUTTON_SPACING 10
+
+#define DRAW_AREA_X1 100
+#define DRAW_AREA_Y1 50
+#define DRAW_AREA_X2 1100
+#define DRAW_AREA_Y2 650
+
+#define MENU_COLOR_R 0.10
+#define MENU_COLOR_G 0.1
+#define MENU_COLOR_B 0.1
 
 #define SLIDER_LENGHT 3
-enum
+enum RGB
 {
   R,
   G,
   B
-} rgb;
-
-typedef struct
-{
-  int x;
-  int y;
-  int _x;
-  int _y;
-} Coordinates;
+};
 
 typedef struct
 {
@@ -43,14 +63,14 @@ class Menu
 protected:
   LayerManager *layerManager;
   int operation;
-  int posX;
-  int posY;
-  int posX2;
-  int posY2;
+  int disableLayer;
   Botao **buttons;
   int numButtons;
   Slider **slider;
-  Coordinates coord;
+
+  Coordinates coords;
+  Coordinates mouseCoords;
+
   Color color;
 
 private:
@@ -59,26 +79,30 @@ private:
     slider = new Slider *[SLIDER_LENGHT];
     for (int i = 0; i < SLIDER_LENGHT; i++)
     {
-      slider[i] = new Slider(1285, 100 + 30 * i, 1520, 100 + 30 * i);
+      Coordinates coordSlider(SLIDER_START_X, SLIDER_START_Y + SLIDER_SPACING_Y * i,
+                              SLIDER_END_X, SLIDER_START_Y + SLIDER_SPACING_Y * i);
+      slider[i] = new Slider(coordSlider);
     }
   }
-  void createButtons()
+
+protected:
+  virtual void createButtons()
   {
     buttons = new Botao *[numButtons];
-    int baseX = posX + 10;
-    int baseY = posY + 10;
+    int baseX = coords.x1 + 10;
+    int baseY = coords.y1 + 10;
     int buttonSize = 30;
     int spacing = 10;
 
     for (int i = 0; i < numButtons; i++)
     {
-      int bx = (posX2 - posX > posY2 - posY) ? baseX + i * (buttonSize + spacing) : baseX;
-      int by = (posX2 - posX > posY2 - posY) ? baseY : baseY + i * (buttonSize + spacing);
-      buttons[i] = new Botao(bx, by, 30, 30);
+      int bx = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseX + i * (buttonSize + spacing) : baseX;
+      int by = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseY : baseY + i * (buttonSize + spacing);
+      buttons[i] = new Botao(bx, by, BUTTON_SIZE, BUTTON_SIZE);
     }
   }
 
-  void renderButtons()
+  virtual void renderButtons()
   {
     for (int i = 0; i < numButtons; i++)
     {
@@ -87,25 +111,22 @@ private:
   }
 
 public:
-  Menu(int posX, int posY, int posX2, int posY2, int numButtons)
+  Menu(Coordinates coords, int numButtons)
   {
-    if (numButtons < 3)
-    {
-      numButtons = 3;
-    }
+    this->coords = coords;
+    this->numButtons = (numButtons >= 3) ? numButtons : 3;
 
-    this->posX = posX;
-    this->posY = posY;
-    this->posX2 = posX2;
-    this->posY2 = posY2;
-    this->numButtons = numButtons;
     layerManager = nullptr;
-
-    coord._x = coord._y = coord.x = coord.y = 0;
+    mouseCoords.x1 = mouseCoords.y1 = mouseCoords.x2 = mouseCoords.y2 = 0;
     operation = -1;
-    color.r = color.g = color.b = 0;
-    createSlider();
+    disableLayer = -1;
+  }
+
+  virtual void init()
+  {
     createButtons();
+    createSlider();
+    setColor();
   }
 
   void setColor()
@@ -115,7 +136,7 @@ public:
     color.b = slider[B]->value;
   }
 
-  bool collisionButtons(int x, int y)
+  virtual bool collisionButtons(int x, int y)
   {
     for (int index = 0; index < numButtons; index++)
     {
@@ -128,10 +149,37 @@ public:
     return false;
   }
 
+  void handleClick(int x1, int y1, int x2, int y2)
+  {
+    setCoord(x1, y1, x2, y2);
+    for (int i = 0; i < SLIDER_LENGHT; i++)
+    {
+      slider[i]->render();
+      if (slider[i]->isHovering(x2, y2))
+      {
+        slider[i]->setPointer(x2);
+      }
+    }
+    functions();
+  }
+
+  void setCoord(int x1, int y1, int x2, int y2)
+  {
+    mouseCoords.x1 = x1;
+    mouseCoords.y1 = y1;
+    mouseCoords.x2 = x2;
+    mouseCoords.y2 = y2;
+  }
+
+  virtual void functions()
+  {
+    setColor();
+  }
+
   void renderSliderRGB()
   {
     CV::color(color.r, color.g, color.b);
-    CV::rectFill(1380, 40, 1420, 80);
+    CV::rectFill(COLOR_PREVIEW_X1, COLOR_PREVIEW_Y1, COLOR_PREVIEW_X2, COLOR_PREVIEW_Y2);
     for (int i = 0; i < SLIDER_LENGHT; i++)
     {
       switch (i)
@@ -146,11 +194,12 @@ public:
         CV::color(0, 0, 1.0);
         break;
       }
-      CV::rectFill(1258, 90 + 30 * i, 1278, 110 + 30 * i);
+      CV::rectFill(SLIDER_INDICATOR_X1, SLIDER_INDICATOR_Y_START + SLIDER_SPACING_Y * i,
+                   SLIDER_INDICATOR_X2, SLIDER_INDICATOR_Y_START + 20 + SLIDER_SPACING_Y * i);
       slider[i]->render();
     }
   }
-  
+
   void renderLayers()
   {
     if (layerManager)
@@ -161,44 +210,16 @@ public:
 
   void render()
   {
-    CV::color(0, 0, 0);                     // cor do menu
-    CV::rectFill(posX, posY, posX2, posY2); // Criar menu;
+    CV::color(MENU_COLOR_R, MENU_COLOR_G, MENU_COLOR_B);      // Cor preta;
+    CV::rectFill(coords.x1, coords.y1, coords.x2, coords.y2); // Criar menu;
     renderButtons();
-  }
-
-  void handleClick(int x, int y, int _x, int _y)
-  {
-    setCoord(x, y, _x, _y);
-    for (int i = 0; i < SLIDER_LENGHT; i++)
-    {
-      slider[i]->render();
-      if (slider[i]->isHovering(_x, _y))
-      {
-        slider[i]->setPointer(x); // atualiza ponteiro e valor baseado na posição do mouse
-      }
-    }
-    functions();
-  }
-
-  void setCoord(int x, int y, int _x, int _y)
-  {
-    coord.x = x;
-    coord.y = y;
-    coord._x = _x;
-    coord._y = _y;
-  }
-
-  virtual void functions()
-  {
-    setColor();
   }
 };
 
 class MenuFunctions : public Menu
 {
 public:
-  MenuFunctions(int posX, int posY, int posX2, int posY2, int numButtons)
-      : Menu(posX, posY, posX2, posY2, numButtons) {}
+  MenuFunctions(Coordinates coords, int numButtons) : Menu(coords, numButtons) {}
 
   void setLayerManager(LayerManager *lm)
   {
@@ -226,26 +247,26 @@ public:
     case -1:
       break;
     case 0:
-      layerManager->layerActive()->addRect(coord.x, coord.y, coord._x, coord._y, color.r, color.g, color.b);
+      layerManager->layerActive()->addRect(mouseCoords, color.r, color.g, color.b);
       break;
     case 1:
-      radius = sqrt(pow(coord._x - coord.x, 2) + pow(coord._y - coord.y, 2)) / 2;
-      layerManager->layerActive()->addCircle(coord.x, coord.y, radius, color.r, color.g, color.b);
+      radius = sqrt(pow(mouseCoords.x2 - mouseCoords.x1, 2) + pow(mouseCoords.y2 - mouseCoords.y1, 2)) / 2;
+      layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
       break;
     case 2:
-      layerManager->layerActive()->addLine(coord.x, coord.y, coord._x, coord._y, color.r, color.g, color.b);
+      layerManager->layerActive()->addLine(mouseCoords, color.r, color.g, color.b);
       break;
     case 3:
-      layerManager->layerActive()->addPoint(coord.x, coord.y, color.r, color.g, color.b);
+      layerManager->layerActive()->addPoint(mouseCoords.x1, mouseCoords.y1, color.r, color.g, color.b);
       break;
     case 4:
       // Ponto maior
       radius = 10.0;
-      layerManager->layerActive()->addCircle(coord.x, coord.y, radius, color.r, color.g, color.b);
+      layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
       break;
     case 5:
-      // Apaga elementos adicionados seja qual for!
-      layerManager->layerActive()->removeElement(coord._x, coord._y);
+      layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
+      break;
     default:
       break;
     }
@@ -255,9 +276,64 @@ public:
 class MenuLayer : public Menu
 {
 public:
-  MenuLayer(int posX, int posY, int posX2, int posY2, int numButtons) : Menu(posX, posY, posX2, posY2, numButtons)
+  CheckBox **checkBox;
+
+  MenuLayer(Coordinates coords, int numButtons) : Menu(coords, numButtons)
   {
-    layerManager = new LayerManager(100, 50, 1150, 650);
+    this->coords = coords;
+    Coordinates drawArea(DRAW_AREA_X1, DRAW_AREA_Y1, DRAW_AREA_X2, DRAW_AREA_Y2);
+    layerManager = new LayerManager(drawArea);
+  }
+
+  // Criar botões e checkbox
+  void createButtons() override
+  {
+    buttons = new Botao *[numButtons];
+    checkBox = new CheckBox *[numButtons];
+
+    int baseX = coords.x1 + 10;
+    int baseY = coords.y1 + 10;
+    int buttonSize = 30;
+    int spacing = 10;
+    int checkboxSize = 15;
+
+    for (int i = 0; i < numButtons; i++)
+    {
+      int bx = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseX + i * (buttonSize + spacing) : baseX;
+      int by = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseY : baseY + i * (buttonSize + spacing);
+
+      Coordinates coordsCheckBox(bx - checkboxSize - spacing*2, by + spacing/2, bx - spacing*2, by + spacing/2 + checkboxSize);
+
+      checkBox[i] = new CheckBox(coordsCheckBox);
+      buttons[i] = new Botao(bx, by, BUTTON_SIZE, BUTTON_SIZE);
+    }
+  }
+
+  void renderButtons() override
+  {
+    for (int i = 0; i < numButtons; i++)
+    {
+      buttons[i]->Render();
+      checkBox[i]->render();
+    }
+  }
+
+  virtual bool collisionButtons(int x, int y)
+  {
+    for (int index = 0; index < numButtons; index++)
+    {
+      if (buttons[index]->Colidiu(x, y))
+      {
+        operation = index;
+        return true;
+      }
+      if (checkBox[index]->click(x, y))
+      {
+        disableLayer = index;
+        return true;
+      }
+    }
+    return false;
   }
 
   LayerManager *getLayerManager()
@@ -268,19 +344,22 @@ public:
   void functions() override
   {
 
-    if (operation == -1)
+    if (disableLayer != -1)
     {
+      layerManager->toggleLayerVisibility(disableLayer);
+      disableLayer = -1;
+      operation = -1;
       return;
     }
-    if (operation == 0 || operation == 1 || operation == 2)
+
+    if (operation != -1 && operation < numButtons)
     {
       layerManager->addLayer(img[operation].c_str(), 50, 0);
+      if (!checkBox[layerManager->getActiveLayer()]->isChecked())
+      {
+        checkBox[layerManager->getActiveLayer()]->setCheck(true);
+      }
       return;
-    }
-    if (operation == 3 || operation == 4 || operation == 5)
-    {
-      layerManager->toggleLayerVisibility(operation - 3);
-      operation = -1;
     }
   }
 };
