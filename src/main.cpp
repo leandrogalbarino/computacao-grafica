@@ -30,7 +30,6 @@
 #include "LayerManager.h"
 #include "Coordinates.h"
 
-#define BUTTONS_LAYER 3
 #define BUTTONS_SIDE 10
  
 // CORES PARA O FUNDO DO PROGRAMA -> Cinza escuro
@@ -51,7 +50,7 @@ MenuLayer *menuLayer;
 
 void menusCreate()
 {
-    menuLayer = new MenuLayer(CoordMenuLayer, BUTTONS_LAYER);
+    menuLayer = new MenuLayer(CoordMenuLayer);
     menuSide = new MenuFunctions(CoordMenuSide, BUTTONS_SIDE);
     menuSide->setLayerManager(menuLayer->getLayerManager());
     

@@ -7,7 +7,6 @@
 #include "Coordinates.h"
 #include <iostream>
 
-
 class LayerManager
 {
 
@@ -72,15 +71,20 @@ public:
   void drawLayers()
   {
     drawBackground();
-    for (Layer *layer : layers)
+    for (int i = layers.size() - 1; i >= 0; i--)
     {
-      layer->draw();
+      layers[i]->draw();
     }
   }
 
   int getActiveLayer()
   {
     return activeLayer;
+  }
+
+  bool isVisible(int index)
+  {
+    return layers[index]->isVisible();
   }
 
   void setActiveLayer(int index)

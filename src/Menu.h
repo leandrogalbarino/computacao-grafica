@@ -38,6 +38,8 @@
 #define MENU_COLOR_G 0.1
 #define MENU_COLOR_B 0.1
 
+#define MAX_LAYERS 10
+
 #define SLIDER_LENGHT 3
 enum RGB
 {
@@ -53,7 +55,7 @@ typedef struct
   float b;
 } Color;
 
-std::string img[] = {
+std::vector<std::string> img = {
     "t1/images/img3.bmp",
     "t1/images/img1.bmp",
     "t1/images/img2.bmp"};
@@ -114,8 +116,7 @@ public:
   Menu(Coordinates coords, int numButtons)
   {
     this->coords = coords;
-    this->numButtons = (numButtons >= 3) ? numButtons : 3;
-
+    this->numButtons = numButtons;
     layerManager = nullptr;
     mouseCoords.x1 = mouseCoords.y1 = mouseCoords.x2 = mouseCoords.y2 = 0;
     operation = -1;
@@ -267,6 +268,9 @@ public:
     case 5:
       layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
       break;
+    case 6:
+      layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
+      break;
     default:
       break;
     }
@@ -277,36 +281,113 @@ class MenuLayer : public Menu
 {
 public:
   CheckBox **checkBox;
+  Botao *buttonAddLayer;
+  Botao **buttonsAlter;
+  bool swapUp;
+  bool swapDown;
 
-  MenuLayer(Coordinates coords, int numButtons) : Menu(coords, numButtons)
+  MenuLayer(Coordinates coords) : Menu(coords, 0)
   {
     this->coords = coords;
+    swapUp = false;
+    swapDown = false;
     Coordinates drawArea(DRAW_AREA_X1, DRAW_AREA_Y1, DRAW_AREA_X2, DRAW_AREA_Y2);
     layerManager = new LayerManager(drawArea);
+    controlButtons();
+  }
+
+  void controlButtons()
+  {
+    const int addLayerOffsetX = 60;
+    const int addLayerOffsetY = 10;
+
+    const int alterButtonsOffsetX = -50;
+    const int alterButtonsStartY = 280;
+    const int alterButtonsSpacingY = 40;
+
+    buttonAddLayer = new Botao(coords.x1 + addLayerOffsetX, coords.y1 + addLayerOffsetY, BUTTON_SIZE, BUTTON_SIZE);
+
+    buttonsAlter = new Botao *[2];
+    for (int i = 0; i < 2; i++)
+    {
+      int y = alterButtonsStartY + i * alterButtonsSpacingY;
+      buttonsAlter[i] = new Botao(coords.x1 + alterButtonsOffsetX, y, BUTTON_SIZE, BUTTON_SIZE);
+    }
   }
 
   // Criar botões e checkbox
-  void createButtons() override
+  void createLayer(int nNewButtons)
   {
-    buttons = new Botao *[numButtons];
-    checkBox = new CheckBox *[numButtons];
-
     int baseX = coords.x1 + 10;
     int baseY = coords.y1 + 10;
     int buttonSize = 30;
     int spacing = 10;
     int checkboxSize = 15;
 
-    for (int i = 0; i < numButtons; i++)
+    for (int i = 0; i < nNewButtons; i++)
     {
-      int bx = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseX + i * (buttonSize + spacing) : baseX;
-      int by = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseY : baseY + i * (buttonSize + spacing);
+      int index = numButtons + i;
 
-      Coordinates coordsCheckBox(bx - checkboxSize - spacing*2, by + spacing/2, bx - spacing*2, by + spacing/2 + checkboxSize);
+      int bx = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseX + index * (buttonSize + spacing) : baseX;
+      int by = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseY : baseY + index * (buttonSize + spacing);
 
-      checkBox[i] = new CheckBox(coordsCheckBox);
-      buttons[i] = new Botao(bx, by, BUTTON_SIZE, BUTTON_SIZE);
+      Coordinates coordsCheckBox(bx - checkboxSize - spacing * 2, by + spacing / 2, bx - spacing * 2, by + spacing / 2 + checkboxSize);
+
+      checkBox[index] = new CheckBox(coordsCheckBox);
+      buttons[index] = new Botao(bx, by, BUTTON_SIZE, BUTTON_SIZE);
+
+      layerManager->addLayer(img[index].c_str(), 50, 0);
+      if (!checkBox[layerManager->getActiveLayer()]->isChecked())
+      {
+        checkBox[layerManager->getActiveLayer()]->setCheck(true);
+      }
+      layerManager->setActiveLayer(i);
     }
+  }
+
+  void createButtons() override
+  {
+    buttons = new Botao *[MAX_LAYERS];
+    checkBox = new CheckBox *[MAX_LAYERS];
+  }
+
+  void addButton()
+  {
+    if (numButtons < img.size())
+    {
+      createLayer(1);
+      // operation = layerManager->layers.size() - 1;
+      numButtons++;
+    }
+    else
+    {
+      std::cout << "Limite de camadas excedida, adicione mais imagens no array para mais camada!";
+    }
+  }
+
+  void swapCheckButton(int i, int j)
+  {
+    if (!checkBox[i] || !checkBox[j] || !buttons[i] || !buttons[j])
+    {
+      std::cout << "Erro: botão ou checkbox nulo em swapCheckButton (" << i << ", " << j << ")\n";
+      return;
+    }
+
+    Coordinates posCheckI = checkBox[i]->getPositon();
+    Coordinates posCheckJ = checkBox[j]->getPositon();
+    int xI = buttons[i]->x, yI = buttons[i]->y;
+    int xJ = buttons[j]->x, yJ = buttons[j]->y;
+
+    // Trocar ponteiros
+    std::swap(checkBox[i], checkBox[j]);
+    std::swap(buttons[i], buttons[j]);
+
+    // Atualizar posições visuais
+    checkBox[i]->setPosition(posCheckI);
+    checkBox[j]->setPosition(posCheckJ);
+
+    buttons[i]->setPosition(xI, yI);
+    buttons[j]->setPosition(xJ, yJ);
   }
 
   void renderButtons() override
@@ -316,24 +397,43 @@ public:
       buttons[i]->Render();
       checkBox[i]->render();
     }
+    buttonAddLayer->Render();
+    buttonsAlter[0]->Render();
+    buttonsAlter[1]->Render();
   }
 
   virtual bool collisionButtons(int x, int y)
   {
     for (int index = 0; index < numButtons; index++)
     {
-      if (buttons[index]->Colidiu(x, y))
+      if (buttons[index] && buttons[index]->Colidiu(x, y))
       {
-        operation = index;
+        layerManager->setActiveLayer(index);
         return true;
       }
-      if (checkBox[index]->click(x, y))
+      if (checkBox[index] && checkBox[index]->click(x, y))
       {
         disableLayer = index;
         return true;
       }
     }
-    return false;
+
+    if (buttonAddLayer && buttonAddLayer->Colidiu(x, y))
+    {
+      addButton();
+      return true;
+    }
+
+    if (buttonsAlter[0]->Colidiu(x, y))
+    {
+      swapUp = true;
+      return true;
+    }
+    else if (buttonsAlter[1]->Colidiu(x, y))
+    {
+      swapDown = true;
+      return true;
+    }
   }
 
   LayerManager *getLayerManager()
@@ -348,19 +448,40 @@ public:
     {
       layerManager->toggleLayerVisibility(disableLayer);
       disableLayer = -1;
-      operation = -1;
       return;
     }
 
-    if (operation != -1 && operation < numButtons)
+    int active = layerManager->getActiveLayer();
+
+    if (active >= 0 && active < numButtons && checkBox[active])
     {
-      layerManager->addLayer(img[operation].c_str(), 50, 0);
-      if (!checkBox[layerManager->getActiveLayer()]->isChecked())
+      if (!checkBox[active]->isChecked())
       {
-        checkBox[layerManager->getActiveLayer()]->setCheck(true);
+        checkBox[active]->setCheck(true);
       }
-      return;
+
+      if (swapUp)
+      {
+        if (active > 0)
+        {
+          std::swap(layerManager->layers[active], layerManager->layers[active - 1]);
+          swapCheckButton(active, active - 1);
+          layerManager->setActiveLayer(active - 1);
+          swapUp = false;
+        }
+      }
+      else if (swapDown)
+      {
+        if (operation < layerManager->layers.size() - 1)
+        {
+          std::swap(layerManager->layers[active], layerManager->layers[active + 1]);
+          swapCheckButton(active, active + 1);
+          layerManager->setActiveLayer(active + 1);
+          swapDown = false;
+        }
+      }      
     }
+
   }
 };
 #endif

@@ -3,11 +3,9 @@
 
 #include "gl_canvas2d.h"
 
-class Botao{
+class Botao{  
+  public:
   float altura, largura, x, y;
-  // char label[100];
-
-public:
   Botao(float _x, float _y, float _larg, float _alt)
   {
      altura  = _alt;
@@ -15,6 +13,11 @@ public:
      x = _x;
      y = _y;
     //  strcpy(label, _label);
+  }
+
+  void setPosition(int x, int y){
+    this->x = x;
+    this->y = y;
   }
 
   void Render()

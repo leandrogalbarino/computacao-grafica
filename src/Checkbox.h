@@ -9,8 +9,8 @@ class CheckBox
 {
   bool check;
   Coordinates coords;
-
-public:
+  
+  public:
   CheckBox(Coordinates coords) : coords(coords)
   {
     check = false;
@@ -20,13 +20,25 @@ public:
     if (check == true)
     {
       CV::color(0, 1, 0);
-    }else{
+    }
+    else
+    {
       CV::color(1, 1, 1);
     }
     CV::rectFill(coords.x1, coords.y1, coords.x2, coords.y2);
   }
 
-  void setCheck(bool value){
+  void setPosition(Coordinates newCoords)
+  {
+    coords = newCoords;
+  }
+
+  Coordinates getPositon(){
+    return coords;
+  }
+
+  void setCheck(bool value)
+  {
     check = value;
   }
 
@@ -39,9 +51,8 @@ public:
     }
     return false;
   }
-  
-  bool isChecked() const { return check; }
 
+  bool isChecked() const { return check; }
 };
 
 #endif
