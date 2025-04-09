@@ -10,22 +10,25 @@
 #include <string.h>
 #include "Checkbox.h"
 #include "Slider.h"
-#include "RotationFlip.h"
+#include "Flip.h"
 #include "Coordinates.h"
 
-#define SLIDER_START_X 1300
+#define SLIDER_START_X 1320
 #define SLIDER_END_X 1520
 #define SLIDER_START_Y 100
 #define SLIDER_SPACING_Y 30
 
-#define COLOR_PREVIEW_X1 1380
+#define COLOR_PREVIEW_X1 1400
 #define COLOR_PREVIEW_Y1 40
-#define COLOR_PREVIEW_X2 1420
+#define COLOR_PREVIEW_X2 1440
 #define COLOR_PREVIEW_Y2 80
 
-#define SLIDER_INDICATOR_X1 1266
-#define SLIDER_INDICATOR_X2 1286
+#define SLIDER_INDICATOR_X1 1286
+#define SLIDER_INDICATOR_X2 1306
 #define SLIDER_INDICATOR_Y_START 90
+
+#define TEXT_OFFSET_RADIUS 8
+#define TEXT_OFFSET_BRIGHTNESS 25
 
 #define BUTTON_SIZE 30
 #define BUTTON_SPACING 10
@@ -41,13 +44,14 @@
 
 #define MAX_LAYERS 10
 
-#define SLIDER_LENGHT 4
-enum RGBR
+#define SLIDER_LENGHT 5
+enum RGBRB
 {
   R,
   G,
   B,
-  RADIUS
+  RADIUS,
+  BRIGHTNESS
 };
 
 typedef struct
@@ -73,9 +77,8 @@ std::vector<std::string> imgButtons = {
     "t1/images/buttons/add_point.bmp",
     "t1/images/buttons/add_point.bmp",
     "t1/images/buttons/remove_elements.bmp",
-    "t1/images/buttons/remove_elements.bmp",
-    "t1/images/buttons/remove_elements.bmp",
-    "t1/images/buttons/remove_elements.bmp",
+    "t1/images/buttons/flip_vertical.bmp",
+    "t1/images/buttons/flip_horizontal.bmp",
 };
 
 class Menu
@@ -93,9 +96,10 @@ protected:
 
   Color color;
   float radius;
+  float brightness;
 
 protected:
-  void createSlider()
+  void createSliders()
   {
     slider = new Slider *[SLIDER_LENGHT];
     for (int i = 0; i < SLIDER_LENGHT; i++)
@@ -144,14 +148,16 @@ public:
   virtual void init()
   {
     createButtons();
-    createSlider();
+    createSliders();
     setColor();
   }
 
-  void setRadius()
+  void applySliders()
   {
-    radius = slider[RADIUS]->value * 100;
+    radius = slider[RADIUS]->value;
+    brightness = slider[BRIGHTNESS]->value;
   }
+
   void setColor()
   {
     color.r = slider[R]->value;
@@ -197,7 +203,7 @@ public:
   virtual void functions()
   {
     setColor();
-    setRadius();
+    applySliders();
   }
 
   void renderLayers()
@@ -226,13 +232,19 @@ public:
     layerManager = lm;
   }
 
+  void sliderExtremites()
+  {
+    slider[RADIUS]->setExtremities(0.0, 100, 1.0);
+    slider[BRIGHTNESS]->setExtremities(0.0, 5, 1.0);
+  }
+
   void init() override
   {
     createButtons();
-    createSlider();
+    createSliders();
+    sliderExtremites();
     buttonsFunctionsSetImage();
-    setColor();
-    setRadius();
+    applySliders();
   }
 
   void buttonsFunctionsSetImage()
@@ -243,7 +255,6 @@ public:
       int index = i + offset;
       if (index < imgButtons.size())
       {
-        printf("index: %d", index);
         buttons[i]->setImage(imgButtons[index].c_str());
       }
     }
@@ -259,23 +270,24 @@ public:
   void renderSliders()
   {
     renderSliderRGB();
-    renderSliderRadius();
+    renderLabeledSlider(RADIUS, "RAIO", TEXT_OFFSET_RADIUS);
+    renderLabeledSlider(BRIGHTNESS, "BRILHO", TEXT_OFFSET_BRIGHTNESS);
   }
 
-  void renderSliderRadius()
+  void renderLabeledSlider(int sliderIndex, const char *label, int labelOffsetX)
   {
     CV::color(1, 1, 1);
-    int yRadius = SLIDER_START_Y + SLIDER_SPACING_Y * 3;
-    int initX = SLIDER_INDICATOR_X1 - 6;
-    CV::text(initX, yRadius + 5, "RAIO");
-    slider[RADIUS]->render();
+    int yPos = SLIDER_START_Y + SLIDER_SPACING_Y * sliderIndex;
+    int textX = SLIDER_INDICATOR_X1 - labelOffsetX;
+    CV::text(textX, yPos + 5, label);
+    slider[sliderIndex]->render();
   }
 
   void renderSliderRGB()
   {
     CV::color(color.r, color.g, color.b);
     CV::rectFill(COLOR_PREVIEW_X1, COLOR_PREVIEW_Y1, COLOR_PREVIEW_X2, COLOR_PREVIEW_Y2);
-    for (int i = 0; i < SLIDER_LENGHT - 1; i++)
+    for (int i = 0; i <= B; i++)
     {
       switch (i)
       {
@@ -324,43 +336,26 @@ public:
       break;
     }
   }
-
-  void rotation()
+  void load_brightness()
   {
     Bmp *image = layerManager->layers[layerManager->getActiveLayer()]->image;
-    RotationType currentRotate = image->getRotation();
-
-    switch (currentRotate)
-    {
-    case ROTATE_0:
-      image->setRotation(ROTATE_90);
-      break;
-    case ROTATE_90:
-      image->setRotation(ROTATE_180);
-      break;
-    case ROTATE_180:
-      image->setRotation(ROTATE_270);
-      break;
-    case ROTATE_270:
-      image->setRotation(ROTATE_0);
-      break;
-    default:
-      image->setRotation(ROTATE_0);
-      break;
-    }
+    image->setBrightness(slider[BRIGHTNESS]->value);
   }
+
 
   void functions() override
   {
 
     setColor();
-    setRadius();
+    applySliders();
 
     if (!layerManager || layerManager->getActiveLayer() == -1)
     {
       std::cout << "\nNenhuma camada selecionada!";
       return;
     }
+    load_brightness();
+
     switch (operation)
     {
     case -1:
@@ -376,25 +371,21 @@ public:
       layerManager->layerActive()->addLine(mouseCoords, color.r, color.g, color.b);
       break;
     case 3:
+      // REMOVER !!
       layerManager->layerActive()->addPoint(mouseCoords.x1, mouseCoords.y1, color.r, color.g, color.b);
       break;
     case 4:
-      // Ponto maior
       layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
       break;
     case 5:
       layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
       break;
     case 6:
-      flip(FLIP_HORIZONTAL);
-      operation = -1;
-      break;
-    case 7:
       flip(FLIP_VERTICAL);
       operation = -1;
       break;
-    case 8:
-      rotation();
+    case 7:
+      flip(FLIP_HORIZONTAL);
       operation = -1;
       break;
     default:
