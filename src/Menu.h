@@ -10,6 +10,7 @@
 #include <string.h>
 #include "Checkbox.h"
 #include "Slider.h"
+#include "RotationFlip.h"
 #include "Coordinates.h"
 
 #define SLIDER_START_X 1300
@@ -71,6 +72,9 @@ std::vector<std::string> imgButtons = {
     "t1/images/buttons/add_line.bmp",
     "t1/images/buttons/add_point.bmp",
     "t1/images/buttons/add_point.bmp",
+    "t1/images/buttons/remove_elements.bmp",
+    "t1/images/buttons/remove_elements.bmp",
+    "t1/images/buttons/remove_elements.bmp",
     "t1/images/buttons/remove_elements.bmp",
 };
 
@@ -250,6 +254,10 @@ public:
     CV::color(MENU_COLOR_R, MENU_COLOR_G, MENU_COLOR_B);      // Cor preta;
     CV::rectFill(coords.x1, coords.y1, coords.x2, coords.y2); // Criar menu;
     renderButtons();
+    renderSliders();
+  }
+  void renderSliders()
+  {
     renderSliderRGB();
     renderSliderRadius();
   }
@@ -292,6 +300,56 @@ public:
     operation = -1;
   }
 
+  void flip(FlipType flip)
+  {
+    Bmp *image;
+    image = layerManager->layers[layerManager->getActiveLayer()]->image;
+    FlipType currentFlip = image->getFlip();
+
+    switch (currentFlip)
+    {
+    case NONE:
+      image->setFlip(flip);
+      break;
+    case FLIP_VERTICAL:
+      image->setFlip(flip == FLIP_VERTICAL ? NONE : FLIP_BOTH);
+      break;
+    case FLIP_HORIZONTAL:
+      image->setFlip(flip == FLIP_HORIZONTAL ? NONE : FLIP_BOTH);
+      break;
+    case FLIP_BOTH:
+      image->setFlip(flip == FLIP_VERTICAL ? FLIP_HORIZONTAL : FLIP_VERTICAL);
+      break;
+    default:
+      break;
+    }
+  }
+
+  void rotation()
+  {
+    Bmp *image = layerManager->layers[layerManager->getActiveLayer()]->image;
+    RotationType currentRotate = image->getRotation();
+
+    switch (currentRotate)
+    {
+    case ROTATE_0:
+      image->setRotation(ROTATE_90);
+      break;
+    case ROTATE_90:
+      image->setRotation(ROTATE_180);
+      break;
+    case ROTATE_180:
+      image->setRotation(ROTATE_270);
+      break;
+    case ROTATE_270:
+      image->setRotation(ROTATE_0);
+      break;
+    default:
+      image->setRotation(ROTATE_0);
+      break;
+    }
+  }
+
   void functions() override
   {
 
@@ -303,7 +361,6 @@ public:
       std::cout << "\nNenhuma camada selecionada!";
       return;
     }
-
     switch (operation)
     {
     case -1:
@@ -329,7 +386,16 @@ public:
       layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
       break;
     case 6:
-      layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
+      flip(FLIP_HORIZONTAL);
+      operation = -1;
+      break;
+    case 7:
+      flip(FLIP_VERTICAL);
+      operation = -1;
+      break;
+    case 8:
+      rotation();
+      operation = -1;
       break;
     default:
       break;

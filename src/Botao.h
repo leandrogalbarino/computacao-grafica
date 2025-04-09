@@ -14,6 +14,7 @@ public:
   float altura, largura, x, y;
   float r, g, b;
   Bmp* imagem = nullptr; // nova linha
+  int direction;
 
   Botao(float _x, float _y, float _larg, float _alt)
   {

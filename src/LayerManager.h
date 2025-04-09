@@ -39,6 +39,7 @@ public:
       std::cerr << "Erro ao criar camada!" << std::endl;
       return;
     }
+    
     layers.push_back(newLayer);
     setActiveLayer(layers.size() - 1);
   }

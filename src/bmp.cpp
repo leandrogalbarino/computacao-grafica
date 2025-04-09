@@ -14,6 +14,9 @@ Bmp::Bmp(const char *fileName)
 {
    width = height = 0;
    data = NULL;
+   flip = NONE;
+   rotation = ROTATE_0;
+
    if( fileName != NULL && strlen(fileName) > 0 )
    {
       load(fileName);
@@ -63,25 +66,79 @@ void Bmp::convertBGRtoRGB()
 }
 
 //OBS - colocando dentro da classe BMP, fica muito mais facil e organizado.
-void Bmp::render()
-{
-  unsigned char tmp;
+// void Bmp::render()
+// {
+//   unsigned char tmp;
 
-  if( data != NULL )
-  {
-     for(int y=0; y<height; y++)
-     for(int x=0; x<width*3; x+=3)  //cada 3 coordenadas x representa 1 pixel na imagem (RGB).
-     {
-        int pos = y*bytesPerLine + x;
+//   if( data != NULL )
+//   {
+//      for(int y=0; y<height; y++)
+//      for(int x=0; x<width*3; x+=3)  //cada 3 coordenadas x representa 1 pixel na imagem (RGB).
+//      {
+//         int pos = y*bytesPerLine + x;
 
 
-        //Dividir pos 3 pois a funcao CV::color() recebe valores entre [0, 1]
-        CV::color(data[pos] / 255.0, data[pos+1] / 255.0, data[pos+2]/ 255.0);
-        CV::point(x/3 + posX , y + posY);
-      //   CV::circleFill(x/3, y, 3, 3);
-     }
+//         //Dividir pos 3 pois a funcao CV::color() recebe valores entre [0, 1]
+//         CV::color(data[pos] / 255.0, data[pos+1] / 255.0, data[pos+2]/ 255.0);
+//         CV::point(x/3 + posX , y + posY);
+//       //   CV::circleFill(x/3, y, 3, 3);
+//      }
+//   }
+// }
+void Bmp::render() {
+  if (!data) return;
+
+  for (int y = 0; y < height; y++) {
+    for (int x = 0; x < width; x++) {
+      int srcX = x;
+      int srcY = y;
+
+      // Coordenadas de origem de cor
+      int pos = srcY * bytesPerLine + srcX * 3;
+      float r = data[pos] / 255.0f;
+      float g = data[pos + 1] / 255.0f;
+      float b = data[pos + 2] / 255.0f;
+
+      // Primeiro: aplicar rotação
+      int drawX = 0, drawY = 0;
+
+      switch (rotation) {
+        case ROTATE_0:
+          drawX = srcX;
+          drawY = srcY;
+          break;
+        case ROTATE_90:
+          drawX = height - 1 - srcY;
+          drawY = srcX;
+          break;
+        case ROTATE_180:
+          drawX = width - 1 - srcX;
+          drawY = height - 1 - srcY;
+          break;
+        case ROTATE_270:
+          drawX = srcY;
+          drawY = width - 1 - srcX;
+          break;
+      }
+
+      // Depois: aplicar flip sobre coordenadas rotacionadas
+      if (flip == FLIP_HORIZONTAL || flip == FLIP_BOTH)
+        drawX = (rotation % 180 == 0 ? width : height) - 1 - drawX;
+
+      if (flip == FLIP_VERTICAL || flip == FLIP_BOTH)
+        drawY = (rotation % 180 == 0 ? height : width) - 1 - drawY;
+
+      // Aplicar posição na tela
+      drawX += posX;
+      drawY += posY;
+
+      CV::color(r, g, b);
+      CV::point(drawX, drawY);
+    }
   }
 }
+
+ 
 
 void Bmp::renderToFit(float targetWidth, float targetHeight)
 {

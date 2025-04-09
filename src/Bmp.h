@@ -14,6 +14,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include "RotationFlip.h"
 
 
 #include "gl_canvas2d.h"
@@ -43,6 +44,8 @@ typedef struct {
 } INFOHEADER;
 
 
+
+ 
 class Bmp
 {
 private:
@@ -53,8 +56,11 @@ private:
    INFOHEADER info;
 
    void load(const char *fileName);
+   FlipType flip;
+   RotationType rotation;
 
 public:
+
    int posX, posY;
    Bmp(const char *fileName);
    void setPosition(int x, int y);
@@ -64,6 +70,10 @@ public:
    void   convertBGRtoRGB(void);
    void render();
    void renderToFit(float targetWidth, float targetHeight);
+   void setFlip(FlipType f) { flip = f; }
+   void setRotation(RotationType r) { rotation = r; }
+   FlipType getFlip() { return flip; }
+   RotationType getRotation() { return rotation; }
 };
 
 #endif
