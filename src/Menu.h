@@ -75,7 +75,6 @@ std::vector<std::string> imgButtons = {
     "t1/images/buttons/add_circle.bmp",
     "t1/images/buttons/add_line.bmp",
     "t1/images/buttons/add_point.bmp",
-    "t1/images/buttons/add_point.bmp",
     "t1/images/buttons/remove_elements.bmp",
     "t1/images/buttons/flip_vertical.bmp",
     "t1/images/buttons/flip_horizontal.bmp",
@@ -371,20 +370,16 @@ public:
       layerManager->layerActive()->addLine(mouseCoords, color.r, color.g, color.b);
       break;
     case 3:
-      // REMOVER !!
-      layerManager->layerActive()->addPoint(mouseCoords.x1, mouseCoords.y1, color.r, color.g, color.b);
-      break;
-    case 4:
       layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
       break;
-    case 5:
+    case 4:
       layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
       break;
-    case 6:
+    case 5:
       flip(FLIP_VERTICAL);
       operation = -1;
       break;
-    case 7:
+    case 6:
       flip(FLIP_HORIZONTAL);
       operation = -1;
       break;
