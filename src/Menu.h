@@ -60,6 +60,19 @@ std::vector<std::string> img = {
     "t1/images/img1.bmp",
     "t1/images/img2.bmp"};
 
+std::vector<std::string> imgButtons = {
+    "t1/images/buttons/add_layer.bmp",
+    "t1/images/buttons/swap_down.bmp",
+    "t1/images/buttons/swap_up.bmp",
+
+    "t1/images/buttons/add_square.bmp",
+    "t1/images/buttons/add_circle.bmp",
+    "t1/images/buttons/add_line.bmp",
+    "t1/images/buttons/add_point.bmp",
+    "t1/images/buttons/add_point.bmp",
+    "t1/images/buttons/remove_elements.bmp",
+};
+
 class Menu
 {
 protected:
@@ -75,7 +88,7 @@ protected:
 
   Color color;
 
-private:
+protected:
   void createSlider()
   {
     slider = new Slider *[SLIDER_LENGHT];
@@ -86,8 +99,6 @@ private:
       slider[i] = new Slider(coordSlider);
     }
   }
-
-protected:
   virtual void createButtons()
   {
     buttons = new Botao *[numButtons];
@@ -227,6 +238,27 @@ public:
     layerManager = lm;
   }
 
+  void init() override
+  {
+    createButtons();
+    createSlider();
+    buttonsFunctionsSetImage();
+    setColor();
+  }
+
+  void buttonsFunctionsSetImage()
+  {
+    int offset = 3;
+    for (int i = 0; i < numButtons; i++)
+    {
+      int index = i + offset;
+      if(index < imgButtons.size()){
+        printf("index: %d", index);
+        buttons[i]->setImage(imgButtons[index].c_str());
+      }
+    }
+  }
+
   void notOperating()
   {
     operation = -1;
@@ -313,6 +345,9 @@ public:
       int y = alterButtonsStartY + i * alterButtonsSpacingY;
       buttonsAlter[i] = new Botao(coords.x1 + alterButtonsOffsetX, y, BUTTON_SIZE, BUTTON_SIZE);
     }
+    buttonAddLayer->setImage(imgButtons[0].c_str());
+    buttonsAlter[0]->setImage(imgButtons[1].c_str());
+    buttonsAlter[1]->setImage(imgButtons[2].c_str());
   }
 
   // Criar botões e checkbox
@@ -356,7 +391,6 @@ public:
     if (numButtons < img.size())
     {
       createLayer(1);
-      // operation = layerManager->layers.size() - 1;
       numButtons++;
     }
     else

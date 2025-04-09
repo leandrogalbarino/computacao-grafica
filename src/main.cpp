@@ -30,7 +30,7 @@
 #include "LayerManager.h"
 #include "Coordinates.h"
 
-#define BUTTONS_SIDE 10
+#define BUTTONS_SIDE 6
  
 // CORES PARA O FUNDO DO PROGRAMA -> Cinza escuro
 #define BACKGROUND_R 0.156

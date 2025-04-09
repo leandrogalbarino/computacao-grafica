@@ -83,6 +83,28 @@ void Bmp::render()
   }
 }
 
+void Bmp::renderToFit(float targetWidth, float targetHeight)
+{
+  if (data != nullptr)
+  {
+    float scaleX = targetWidth / width;
+    float scaleY = targetHeight / height;
+
+    for (int y = 0; y < height; y++)
+    {
+      for (int x = 0; x < width * 3; x += 3)
+      {
+        int pos = y * bytesPerLine + x;
+        CV::color(data[pos] / 255.0, data[pos + 1] / 255.0, data[pos + 2] / 255.0);
+
+        float px = (x / 3) * scaleX + posX;
+        float py = y * scaleY + posY;
+        CV::point(px, py); // pode usar CV::rectFill se quiser dar mais corpo ao pixel
+      }
+    }
+  }
+}
+
 
 
 void Bmp::load(const char *fileName)

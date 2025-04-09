@@ -63,6 +63,7 @@ public:
    int    getHeight(void);
    void   convertBGRtoRGB(void);
    void render();
+   void renderToFit(float targetWidth, float targetHeight);
 };
 
 #endif
