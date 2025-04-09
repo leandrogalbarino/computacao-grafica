@@ -12,7 +12,7 @@
 #include "Slider.h"
 #include "Coordinates.h"
 
-#define SLIDER_START_X 1285
+#define SLIDER_START_X 1300
 #define SLIDER_END_X 1520
 #define SLIDER_START_Y 100
 #define SLIDER_SPACING_Y 30
@@ -22,8 +22,8 @@
 #define COLOR_PREVIEW_X2 1420
 #define COLOR_PREVIEW_Y2 80
 
-#define SLIDER_INDICATOR_X1 1258
-#define SLIDER_INDICATOR_X2 1278
+#define SLIDER_INDICATOR_X1 1266
+#define SLIDER_INDICATOR_X2 1286
 #define SLIDER_INDICATOR_Y_START 90
 
 #define BUTTON_SIZE 30
@@ -40,12 +40,13 @@
 
 #define MAX_LAYERS 10
 
-#define SLIDER_LENGHT 3
-enum RGB
+#define SLIDER_LENGHT 4
+enum RGBR
 {
   R,
   G,
-  B
+  B,
+  RADIUS
 };
 
 typedef struct
@@ -87,6 +88,7 @@ protected:
   Coordinates mouseCoords;
 
   Color color;
+  float radius;
 
 protected:
   void createSlider()
@@ -99,6 +101,7 @@ protected:
       slider[i] = new Slider(coordSlider);
     }
   }
+
   virtual void createButtons()
   {
     buttons = new Botao *[numButtons];
@@ -141,6 +144,10 @@ public:
     setColor();
   }
 
+  void setRadius()
+  {
+    radius = slider[RADIUS]->value * 100;
+  }
   void setColor()
   {
     color.r = slider[R]->value;
@@ -186,30 +193,7 @@ public:
   virtual void functions()
   {
     setColor();
-  }
-
-  void renderSliderRGB()
-  {
-    CV::color(color.r, color.g, color.b);
-    CV::rectFill(COLOR_PREVIEW_X1, COLOR_PREVIEW_Y1, COLOR_PREVIEW_X2, COLOR_PREVIEW_Y2);
-    for (int i = 0; i < SLIDER_LENGHT; i++)
-    {
-      switch (i)
-      {
-      case R:
-        CV::color(1.0, 0, 0);
-        break;
-      case G:
-        CV::color(0, 1.0, 0);
-        break;
-      case B:
-        CV::color(0, 0, 1.0);
-        break;
-      }
-      CV::rectFill(SLIDER_INDICATOR_X1, SLIDER_INDICATOR_Y_START + SLIDER_SPACING_Y * i,
-                   SLIDER_INDICATOR_X2, SLIDER_INDICATOR_Y_START + 20 + SLIDER_SPACING_Y * i);
-      slider[i]->render();
-    }
+    setRadius();
   }
 
   void renderLayers()
@@ -244,6 +228,7 @@ public:
     createSlider();
     buttonsFunctionsSetImage();
     setColor();
+    setRadius();
   }
 
   void buttonsFunctionsSetImage()
@@ -252,10 +237,53 @@ public:
     for (int i = 0; i < numButtons; i++)
     {
       int index = i + offset;
-      if(index < imgButtons.size()){
+      if (index < imgButtons.size())
+      {
         printf("index: %d", index);
         buttons[i]->setImage(imgButtons[index].c_str());
       }
+    }
+  }
+
+  void render()
+  {
+    CV::color(MENU_COLOR_R, MENU_COLOR_G, MENU_COLOR_B);      // Cor preta;
+    CV::rectFill(coords.x1, coords.y1, coords.x2, coords.y2); // Criar menu;
+    renderButtons();
+    renderSliderRGB();
+    renderSliderRadius();
+  }
+
+  void renderSliderRadius()
+  {
+    CV::color(1, 1, 1);
+    int yRadius = SLIDER_START_Y + SLIDER_SPACING_Y * 3;
+    int initX = SLIDER_INDICATOR_X1 - 6;
+    CV::text(initX, yRadius + 5, "RAIO");
+    slider[RADIUS]->render();
+  }
+
+  void renderSliderRGB()
+  {
+    CV::color(color.r, color.g, color.b);
+    CV::rectFill(COLOR_PREVIEW_X1, COLOR_PREVIEW_Y1, COLOR_PREVIEW_X2, COLOR_PREVIEW_Y2);
+    for (int i = 0; i < SLIDER_LENGHT - 1; i++)
+    {
+      switch (i)
+      {
+      case R:
+        CV::color(1.0, 0, 0);
+        break;
+      case G:
+        CV::color(0, 1.0, 0);
+        break;
+      case B:
+        CV::color(0, 0, 1.0);
+        break;
+      }
+      CV::rectFill(SLIDER_INDICATOR_X1, SLIDER_INDICATOR_Y_START + SLIDER_SPACING_Y * i,
+                   SLIDER_INDICATOR_X2, SLIDER_INDICATOR_Y_START + 20 + SLIDER_SPACING_Y * i);
+      slider[i]->render();
     }
   }
 
@@ -268,13 +296,14 @@ public:
   {
 
     setColor();
+    setRadius();
+
     if (!layerManager || layerManager->getActiveLayer() == -1)
     {
       std::cout << "\nNenhuma camada selecionada!";
       return;
     }
 
-    float radius;
     switch (operation)
     {
     case -1:
@@ -294,7 +323,6 @@ public:
       break;
     case 4:
       // Ponto maior
-      radius = 10.0;
       layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
       break;
     case 5:

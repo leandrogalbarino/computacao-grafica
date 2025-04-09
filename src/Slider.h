@@ -43,6 +43,7 @@ public:
     CV::color(COLOR_BAR_R, COLOR_BAR_G, COLOR_BAR_B);
     CV::line(coords.x1, coords.y1, coords.x2, coords.y2);
     CV::text(coords.x1, coords.y1 + 15, std::to_string(value).substr(0, 4).c_str());
+    
     CV::color(COLOR_POINTER_R, COLOR_POINTER_G, COLOR_POINTER_B);
     CV::rectFill(pointer - 3, coords.y1 - halfHeight, pointer + 3, coords.y1 + halfHeight);
     

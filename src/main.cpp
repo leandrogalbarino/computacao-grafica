@@ -88,7 +88,7 @@ void menusRender()
     menuSide->render();
     menuLayer->render();
     menuLayer->renderLayers();
-    menuSide->renderSliderRGB();
+
 }
 
 void render()
