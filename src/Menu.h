@@ -2,7 +2,7 @@
 #define __MENU_H__
 
 #include "gl_canvas2d.h"
-#include "botao.h"
+#include "button.h"
 #include "storage.h"
 
 #include <cmath> // Necessário para sqrt() e pow()
@@ -86,7 +86,7 @@ protected:
   LayerManager *layerManager;
   int operation;
   int disableLayer;
-  Botao **buttons;
+  Button **buttons;
   int numButtons;
   Slider **slider;
 
@@ -112,7 +112,7 @@ protected:
 
   virtual void createButtons()
   {
-    buttons = new Botao *[numButtons];
+    buttons = new Button *[numButtons];
     int baseX = coords.x1 + 10;
     int baseY = coords.y1 + 10;
     int buttonSize = 30;
@@ -122,7 +122,7 @@ protected:
     {
       int bx = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseX + i * (buttonSize + spacing) : baseX;
       int by = (coords.x2 - coords.x1 > coords.y2 - coords.y1) ? baseY : baseY + i * (buttonSize + spacing);
-      buttons[i] = new Botao(bx, by, BUTTON_SIZE, BUTTON_SIZE);
+      buttons[i] = new Button(bx, by, BUTTON_SIZE, BUTTON_SIZE);
     }
   }
 
@@ -170,7 +170,7 @@ public:
   {
     for (int index = 0; index < numButtons; index++)
     {
-      if (buttons[index]->Colidiu(x, y))
+      if (buttons[index]->Collided(x, y))
       {
         operation = index;
         return true;
@@ -229,8 +229,8 @@ class MenuLayer : public Menu
 {
 public:
   CheckBox **checkBox;
-  Botao *buttonAddLayer;
-  Botao **buttonsAlter;
+  Button *buttonAddLayer;
+  Button **buttonsAlter;
   bool swapUp;
   bool swapDown;
 
@@ -253,13 +253,13 @@ public:
     const int alterButtonsStartY = 280;
     const int alterButtonsSpacingY = 40;
 
-    buttonAddLayer = new Botao(coords.x1 + addLayerOffsetX, coords.y1 + addLayerOffsetY, BUTTON_SIZE, BUTTON_SIZE);
+    buttonAddLayer = new Button(coords.x1 + addLayerOffsetX, coords.y1 + addLayerOffsetY, BUTTON_SIZE, BUTTON_SIZE);
 
-    buttonsAlter = new Botao *[2];
+    buttonsAlter = new Button *[2];
     for (int i = 0; i < 2; i++)
     {
       int y = alterButtonsStartY + i * alterButtonsSpacingY;
-      buttonsAlter[i] = new Botao(coords.x1 + alterButtonsOffsetX, y, BUTTON_SIZE, BUTTON_SIZE);
+      buttonsAlter[i] = new Button(coords.x1 + alterButtonsOffsetX, y, BUTTON_SIZE, BUTTON_SIZE);
     }
     buttonAddLayer->setImage(imgButtons[0].c_str());
     buttonsAlter[0]->setImage(imgButtons[1].c_str());
@@ -285,7 +285,7 @@ public:
       Coordinates coordsCheckBox(bx - checkboxSize - spacing * 2, by + spacing / 2, bx - spacing * 2, by + spacing / 2 + checkboxSize);
 
       checkBox[index] = new CheckBox(coordsCheckBox);
-      buttons[index] = new Botao(bx, by, BUTTON_SIZE, BUTTON_SIZE);
+      buttons[index] = new Button(bx, by, BUTTON_SIZE, BUTTON_SIZE);
 
       layerManager->addLayer(img[index].c_str(), 50, 0);
       if (!checkBox[layerManager->getActiveLayer()]->isChecked())
@@ -298,7 +298,7 @@ public:
 
   void createButtons() override
   {
-    buttons = new Botao *[MAX_LAYERS];
+    buttons = new Button *[MAX_LAYERS];
     checkBox = new CheckBox *[MAX_LAYERS];
   }
 
@@ -356,7 +356,7 @@ public:
   {
     for (int index = 0; index < numButtons; index++)
     {
-      if (buttons[index] && buttons[index]->Colidiu(x, y))
+      if (buttons[index] && buttons[index]->Collided(x, y))
       {
         layerManager->setActiveLayer(index);
         attBrightness = true;
@@ -369,18 +369,18 @@ public:
       }
     }
 
-    if (buttonAddLayer && buttonAddLayer->Colidiu(x, y))
+    if (buttonAddLayer && buttonAddLayer->Collided(x, y))
     {
       addButton();
       return true;
     }
 
-    if (buttonsAlter[0]->Colidiu(x, y))
+    if (buttonsAlter[0]->Collided(x, y))
     {
       swapUp = true;
       return true;
     }
-    else if (buttonsAlter[1]->Colidiu(x, y))
+    else if (buttonsAlter[1]->Collided(x, y))
     {
       swapDown = true;
       return true;
@@ -624,7 +624,6 @@ public:
       return;
     }
 
-    printf("ola mundo\nOperation: %d", operation);
     if (state == -2)
     {
       switch (operation)
@@ -647,14 +646,12 @@ public:
     {
       switch (operation)
       {
-      case 2:
+      case 3:
         radius = sqrt(pow(mouseCoords.x2 - mouseCoords.x1, 2) + pow(mouseCoords.y2 - mouseCoords.y1, 2)) / 2;
         layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
         break;
-      case 3:
-        layerManager->layerActive()->addRect(mouseCoords, color.r, color.g, color.b);
-        break;
       case 4:
+        layerManager->layerActive()->addRect(mouseCoords, color.r, color.g, color.b);
         break;
       case 5:
         flip(FLIP_VERTICAL);

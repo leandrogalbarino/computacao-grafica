@@ -1,5 +1,5 @@
-#ifndef __BOTAO_H__
-#define __BOTAO_H__
+#ifndef __BUTTON_H__
+#define __BUTTON_H__
 
 #include "gl_canvas2d.h"
 #include "Bmp.h"
@@ -8,18 +8,18 @@
 #define DEFAULT_G 0.55
 #define DEFAULT_B 0.9
 
-class Botao
+class Button
 {
 public:
-  float altura, largura, x, y;
+  float height, width, x, y;
   float r, g, b;
-  Bmp* imagem = nullptr; // nova linha
+  Bmp* image = nullptr; // nova linha
   int direction;
 
-  Botao(float _x, float _y, float _larg, float _alt)
+  Button(float _x, float _y, float _width, float _height)
   {
-    altura = _alt;
-    largura = _larg;
+    height = _height;
+    width = _width;
     x = _x;
     y = _y;
     setDefaultColor();
@@ -48,38 +48,38 @@ public:
 
   void setImage(const char* filename)
   {
-    if (imagem) delete imagem;
-    imagem = new Bmp(filename);
-    imagem->convertBGRtoRGB();
-    imagem->getImage(); // carrega os dados da imagem
-    imagem->setPosition(x, y); // ← importante definir onde será desenhada
+    if (image) delete image;
+    image = new Bmp(filename);
+    image->convertBGRtoRGB();
+    image->getImage(); // carrega os dados da imagem
+    image->setPosition(x, y); // ← importante definir onde será desenhada
   }
   
 
   void Render()
   {
-    if (imagem)
+    if (image)
     {
-      imagem->setPosition(x, y);
-      imagem->renderToFit(30,30); // ← desenha a imagem no botão
+      image->setPosition(x, y);
+      image->renderToFit(30,30); // ← desenha a imagem no botão
     }
     else
     {
       CV::color(r, g, b);
-      CV::rectFill(x, y, x + largura, y + altura);
+      CV::rectFill(x, y, x + width, y + height);
     }
   
     // Borda do botão
     CV::color(0, 0, 0);
-    CV::rect(x, y, x + largura, y + altura);
+    CV::rect(x, y, x + width, y + height);
   }
   
 
 
   // recebe as coordenadas do mouse para tratar clique ou detectar quando o mouse esta em cima do botao
-  bool Colidiu(int mx, int my)
+  bool Collided(int mx, int my)
   {
-    if (mx >= x && mx <= (x + largura) && my >= y && my <= (y + altura))
+    if (mx >= x && mx <= (x + width) && my >= y && my <= (y + height))
     {
       return true;
     }
