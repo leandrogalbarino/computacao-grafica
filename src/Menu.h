@@ -71,11 +71,11 @@ std::vector<std::string> imgButtons = {
     "t1/images/buttons/swap_down.bmp",
     "t1/images/buttons/swap_up.bmp",
 
-    "t1/images/buttons/add_square.bmp",
-    "t1/images/buttons/add_circle.bmp",
-    "t1/images/buttons/add_line.bmp",
     "t1/images/buttons/add_point.bmp",
+    "t1/images/buttons/add_line_pencil.bmp",
     "t1/images/buttons/remove_elements.bmp",
+    "t1/images/buttons/add_circle.bmp",
+    "t1/images/buttons/add_square.bmp",
     "t1/images/buttons/flip_vertical.bmp",
     "t1/images/buttons/flip_horizontal.bmp",
 };
@@ -177,7 +177,8 @@ public:
     return false;
   }
 
-  void handleClick(int x1, int y1, int x2, int y2)
+  int state = -1;
+  void handleClick(int x1, int y1, int x2, int y2, int state)
   {
     setCoord(x1, y1, x2, y2);
     for (int i = 0; i < SLIDER_LENGHT; i++)
@@ -188,6 +189,7 @@ public:
         slider[i]->setPointer(x2);
       }
     }
+    this->state = state;
     functions();
   }
 
@@ -341,7 +343,6 @@ public:
     image->setBrightness(slider[BRIGHTNESS]->value);
   }
 
-
   void functions() override
   {
 
@@ -355,36 +356,50 @@ public:
     }
     load_brightness();
 
-    switch (operation)
+    if (operation == -1)
     {
-    case -1:
-      break;
-    case 0:
-      layerManager->layerActive()->addRect(mouseCoords, color.r, color.g, color.b);
-      break;
-    case 1:
-      radius = sqrt(pow(mouseCoords.x2 - mouseCoords.x1, 2) + pow(mouseCoords.y2 - mouseCoords.y1, 2)) / 2;
-      layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
-      break;
-    case 2:
-      layerManager->layerActive()->addLine(mouseCoords, color.r, color.g, color.b);
-      break;
-    case 3:
-      layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
-      break;
-    case 4:
-      layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
-      break;
-    case 5:
-      flip(FLIP_VERTICAL);
-      operation = -1;
-      break;
-    case 6:
-      flip(FLIP_HORIZONTAL);
-      operation = -1;
-      break;
-    default:
-      break;
+      return;
+    }
+
+    if (state == -2)
+    {
+      switch (operation)
+      {
+      case 0:
+        layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
+        break;
+      case 1:
+        layerManager->layerActive()->addLine(mouseCoords, color.r, color.g, color.b);
+        break;
+      case 2:
+        layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
+        break;
+      default:
+        break;
+      }
+    }
+    else
+    {
+      switch (operation)
+      {
+      case 3:
+        radius = sqrt(pow(mouseCoords.x2 - mouseCoords.x1, 2) + pow(mouseCoords.y2 - mouseCoords.y1, 2)) / 2;
+        layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
+        break;
+      case 4:
+        layerManager->layerActive()->addRect(mouseCoords, color.r, color.g, color.b);
+        break;
+      case 5:
+        flip(FLIP_VERTICAL);
+        operation = -1;
+        break;
+      case 6:
+        flip(FLIP_HORIZONTAL);
+        operation = -1;
+        break;
+      default:
+        break;
+      }
     }
   }
 };

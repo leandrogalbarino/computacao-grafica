@@ -31,7 +31,7 @@
 #include "Coordinates.h"
 
 #define BUTTONS_SIDE 7
- 
+
 // CORES PARA O FUNDO DO PROGRAMA -> Cinza escuro
 #define BACKGROUND_R 0.156
 #define BACKGROUND_G 0.164
@@ -48,12 +48,14 @@ Coordinates CoordMenuSide(0, 0, 50, screenHeight);
 MenuFunctions *menuSide;
 MenuLayer *menuLayer;
 
+bool mousePressed = false;
+
 void menusCreate()
 {
     menuLayer = new MenuLayer(CoordMenuLayer);
     menuSide = new MenuFunctions(CoordMenuSide, BUTTONS_SIDE);
     menuSide->setLayerManager(menuLayer->getLayerManager());
-    
+
     menuSide->init();
     menuLayer->init();
 }
@@ -69,10 +71,10 @@ void menusCollision(int x, int y)
     }
 }
 
-void menusHandleClick(int x1, int y1, int x2, int y2)
+void menusHandleClick(int x1, int y1, int x2, int y2, int state)
 {
-    menuLayer->handleClick(x1, y1, x2, y2);
-    menuSide->handleClick(x1, y1, x2, y2);
+    menuLayer->handleClick(x1, y1, x2, y2, state);
+    menuSide->handleClick(x1, y1, x2, y2, state);
 }
 
 // Background cinza escuro
@@ -88,7 +90,6 @@ void menusRender()
     menuSide->render();
     menuLayer->render();
     menuLayer->renderLayers();
-
 }
 
 void render()
@@ -110,17 +111,31 @@ void keyboardUp(int key)
 // funcao para tratamento de mouse: cliques, movimentos e arrastos
 void mouse(int button, int state, int wheel, int direction, int _x, int _y)
 {
-    static int x = 0; // Variável estática mantém valor entre chamadas da função
+    static int x = 0; // Ponto inicial do clique ou do último ponto no arrasto
     static int y = 0;
-    if (state == 0)
+    
+    static int x_init = 0; 
+    static int y_init = 0;
+
+    if (state == 0) // botão pressionado
     {
-        menusCollision(_x, _y);
+        mousePressed = true;
+        menusCollision(_x, _y); // verifica se clicou em botão/menu
         x = _x;
         y = _y;
+        x_init = _x;
+        y_init = _y;
     }
-    if (state == 1)
+    else if (state == 1) // botão liberado
     {
-        menusHandleClick(_x, _y, x, y);
+        mousePressed = false;
+        menusHandleClick(x_init, y_init, x, y, state); // executa ação com ponto inicial -> final
+    }
+    else if (state == -2 && mousePressed) // arrasto com botão pressionado
+    {
+        menusHandleClick(_x, _y, x, y, state); // pode usar para desenhar enquanto arrasta
+        x = _x;
+        y = _y;
     }
 }
 
