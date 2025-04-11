@@ -36,7 +36,8 @@ public:
     this->maxValue = maxValue;
     if (initialValue >= minValue && initialValue <= maxValue)
     {
-      setPointer2(initialValue);
+      value = initialValue;
+      pointer = coords.x1 + ((initialValue - minValue) / (maxValue - minValue)) * (coords.x2 - coords.x1);
     }
     else
     {
@@ -44,14 +45,6 @@ public:
     }
   }
 
-  void setPointer2(float val)
-  {
-      pointer = coords.x1 + ((val - minValue) / (maxValue - minValue)) * (coords.x2 - coords.x1);      
-      updateValue();
-  }
-  
-  
-  
   void updateValue()
   {
     float t = float(pointer - coords.x1) / float(coords.x2 - coords.x1);
