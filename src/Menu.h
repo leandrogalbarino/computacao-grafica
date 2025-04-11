@@ -341,7 +341,6 @@ public:
     image->setBrightness(slider[BRIGHTNESS]->value);
   }
 
-
   void functions() override
   {
 
@@ -353,6 +352,7 @@ public:
       std::cout << "\nNenhuma camada selecionada!";
       return;
     }
+
     load_brightness();
 
     switch (operation)
@@ -516,6 +516,11 @@ public:
     buttonsAlter[1]->Render();
   }
 
+  void setSliderBrightness(int index)
+  {
+    slider[BRIGHTNESS]->setPointer2(layerManager->layers[index]->image->getBrightness());
+  }
+
   virtual bool collisionButtons(int x, int y)
   {
     for (int index = 0; index < numButtons; index++)
@@ -543,7 +548,7 @@ public:
       swapUp = true;
       return true;
     }
-    else if (buttonsAlter[1]->Colidiu(x, y))
+    if (buttonsAlter[1]->Colidiu(x, y))
     {
       swapDown = true;
       return true;
@@ -576,7 +581,10 @@ public:
 
   void functions() override
   {
-
+    printf("%f\n", slider[BRIGHTNESS]->value);
+    setColor();
+    applySliders();
+    printf("%f\n", slider[BRIGHTNESS]->value);
     if (disableLayer != -1)
     {
       layerManager->toggleLayerVisibility(disableLayer);
@@ -590,6 +598,7 @@ public:
     {
       buttonsSetColor();
       checkBox[active]->setCheck(true);
+      setSliderBrightness(active);
 
       if (swapUp)
       {

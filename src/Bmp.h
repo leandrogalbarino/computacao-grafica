@@ -58,7 +58,7 @@ public:
    void renderToFit(float targetWidth, float targetHeight);
    void setFlip(FlipType f) { flip = f; }
    FlipType getFlip() { return flip; }
-   float getBrightnesse() { return brightness; }
+   float getBrightness() { return brightness; }
    void setBrightness(float value) { brightness = value; }
 };
 
