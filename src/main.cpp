@@ -1,23 +1,41 @@
-/*********************************************************************
-//  nome: Leandro Oliveira Galbarino do Nascimento
-    Foram realizadas todas implementações obrigatórias:
-    - Desenho com botão esquerdo do mouse
-    - Criação de diferentes camadas
-    - É possível ver qual camada está selecionada e alterar a camada.
-    - É possível adicionar mais imagens no botão [+] presente na interface, podendo adicionar quantas imagens quiser(Para isso é necessário adicionar mais imagens no array img[] presente em Menu);
-    - Através dos sliders é possível escolher a cor que deseja adicionar - com RGB.
-    - É possível fazer o flip da imagem (verticalmente e horizontalmente).
-    - Possível através do slider mudar o brilho da imagem
-    - Pode deixar visivel ou invisivel uma camada através da checkBox ao lado do botão da imagem.
-    - Foi usado botões, sliders e checkbox.
-    Extras:
-    -   A camada é composta pela imagem e pode ser adicionada formas geometricas e desenhar, porém são coisas diferente dentro da camada sendo assim flip e brilho mudam apenas as imagens e os desenho continuam intactos.
-    -   É possível adicionar Retangulos, Circulos como formas geometricas
-    -   É possível usar "lápis" que é uma linha que pode ser usada segurando o botão esquerdo do mouse.
-    -   É possível usar uma especie de pincel que altera seu raio através do Slider(RAIO), ele funciona da mesma maneira que o lápis, ou seja, ao segurar ele cria circulos continuamente. Foi usado circulo do canvas e não ponto, pois ponto é um pixel que mal da para enxergar, enquanto o círculo pode ficar maior atráves do raio, e menor também, parendo um pixel.
-    -   Através da vassoura é possível apagar formas e desenho(não se aplica a imagem), segurando com botão esquerdo irá apagar elementos adicionados na camada.
-    - Foi usado diferentes arquivos e classes da linguagem C++ para realizar a implementação do PhotoShop Caseiro
-    *********************************************************************/
+// Autor: Leandro Oliveira Galbarino do Nascimento
+// obs: O eixo Y cresce para baixo.
+//
+// Implementações obrigatórias concluídas:
+//
+// - Desenho com o botão esquerdo do mouse.
+// - Criação e gerenciamento de diferentes camadas.
+// - É possível visualizar e alternar a camada ativa.
+// - Botão [+] permite adicionar novas imagens dinamicamente.
+//     (Para isso, basta adicionar novos caminhos no array `img[]` em `Menu.h`)
+// - Sliders para seleção de cor (RGB).
+// - Flip da imagem (horizontal e vertical).
+// - Controle de brilho da imagem através de slider.
+// - Controle de visibilidade de camadas com checkboxes.
+// - Interface composta por botões, sliders e checkboxes.
+//
+// Funcionalidades Extras:
+//
+// - Camadas compostas por imagem + formas geométricas/desenho:
+//     → Flip e brilho afetam apenas a imagem, os desenhos permanecem intactos.
+// - Adição de formas geométricas: Retângulo e Círculo.
+// - Ferramenta "Lápis": desenha linhas ao segurar o botão esquerdo do mouse.
+// - Ferramenta "Pincel": desenha círculos contínuos, com raio ajustável via slider (RAIO).
+//     → Círculo usado no lugar do ponto para melhor visualização (ponto é um pixel pequeno demais).
+// - Ferramenta "Vassoura": permite apagar formas geométricas e desenhos (não afeta a imagem).
+//     → Segure o botão esquerdo do mouse sobre o que deseja apagar.
+// - Estrutura modular utilizando múltiplos arquivos e classes em C++.
+//
+// Instruções Gerais de Uso:
+// - Use os botões laterais da direita para adicionar e controlar as camadas.
+// - Os sliders controlam as cores para novos desenhos e o brilho das imagens.
+// - Clique nos botões geométricos da esquerda para escolher a forma a ser desenhada.
+// - Desenhe segurando o botão esquerdo do mouse na área de edição.
+// - O botão "+" adiciona uma nova camada com imagem.
+// - A camada ativa fica com borda vermelha no botão.
+// - Use os botões de seta ↑ ↓ para alterar a ordem das camadas.
+// - A checkbox de cada camada alterna a visibilidade da respectiva camada.
+// - A última ferramenta (vassoura) permite apagar formas/desenhos de uma camada.
 
 #include <GL/glut.h>
 #include <GL/freeglut_ext.h> //callback da wheel do mouse.
@@ -30,9 +48,9 @@
 #include "bmp.h"
 #include "checkbox.h"
 #include "Menu.h"
+#include "Vector2.h"
 #include <iostream>
 #include <string>
-#include "Camada.h"
 #include "LayerManager.h"
 #include "Coordinates.h"
 

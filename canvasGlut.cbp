@@ -41,12 +41,17 @@
 			<Add library="../lib/libopengl32.a" />
 			<Add library="../lib/libglu32.a" />
 		</Linker>
-		<Unit filename="src/Armazenamento.h" />
 		<Unit filename="src/Bmp.h" />
-		<Unit filename="src/Botao.h" />
-		<Unit filename="src/Camada.h" />
+		<Unit filename="src/Button.h" />
 		<Unit filename="src/Checkbox.h" />
+		<Unit filename="src/Coordinates.h" />
+		<Unit filename="src/Flip.h" />
+		<Unit filename="src/Layer.h" />
+		<Unit filename="src/LayerManager.h" />
 		<Unit filename="src/Menu.h" />
+		<Unit filename="src/Shape.h" />
+		<Unit filename="src/Slider.h" />
+		<Unit filename="src/Storage.h" />
 		<Unit filename="src/Vector2.h" />
 		<Unit filename="src/bmp.cpp" />
 		<Unit filename="src/gl_canvas2d.cpp" />
