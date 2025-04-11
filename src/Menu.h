@@ -72,7 +72,7 @@ std::vector<std::string> imgButtons = {
     "t1/images/buttons/swap_up.bmp",
 
     "t1/images/buttons/add_point.bmp",
-    "t1/images/buttons/add_line_pencil.bmp",
+    "t1/images/buttons/add_line.bmp",
     "t1/images/buttons/remove_elements.bmp",
     "t1/images/buttons/add_circle.bmp",
     "t1/images/buttons/add_square.bmp",
@@ -96,6 +96,7 @@ protected:
   Color color;
   float radius;
   float brightness;
+  bool attBrightness;
 
 protected:
   void createSliders()
@@ -142,6 +143,7 @@ public:
     mouseCoords.x1 = mouseCoords.y1 = mouseCoords.x2 = mouseCoords.y2 = 0;
     operation = -1;
     disableLayer = -1;
+    attBrightness = false;
   }
 
   virtual void init()
@@ -220,187 +222,6 @@ public:
     CV::color(MENU_COLOR_R, MENU_COLOR_G, MENU_COLOR_B);      // Cor preta;
     CV::rectFill(coords.x1, coords.y1, coords.x2, coords.y2); // Criar menu;
     renderButtons();
-  }
-};
-
-class MenuFunctions : public Menu
-{
-public:
-  MenuFunctions(Coordinates coords, int numButtons) : Menu(coords, numButtons) {}
-
-  void setLayerManager(LayerManager *lm)
-  {
-    layerManager = lm;
-  }
-
-  void sliderExtremites()
-  {
-    slider[RADIUS]->setExtremities(0.0, 100, 1.0);
-    slider[BRIGHTNESS]->setExtremities(0.0, 5, 1.0);
-  }
-
-  void init() override
-  {
-    createButtons();
-    createSliders();
-    sliderExtremites();
-    buttonsFunctionsSetImage();
-    applySliders();
-  }
-
-  void buttonsFunctionsSetImage()
-  {
-    int offset = 3;
-    for (int i = 0; i < numButtons; i++)
-    {
-      int index = i + offset;
-      if (index < imgButtons.size())
-      {
-        buttons[i]->setImage(imgButtons[index].c_str());
-      }
-    }
-  }
-
-  void render()
-  {
-    CV::color(MENU_COLOR_R, MENU_COLOR_G, MENU_COLOR_B);      // Cor preta;
-    CV::rectFill(coords.x1, coords.y1, coords.x2, coords.y2); // Criar menu;
-    renderButtons();
-    renderSliders();
-  }
-  void renderSliders()
-  {
-    renderSliderRGB();
-    renderLabeledSlider(RADIUS, "RAIO", TEXT_OFFSET_RADIUS);
-    renderLabeledSlider(BRIGHTNESS, "BRILHO", TEXT_OFFSET_BRIGHTNESS);
-  }
-
-  void renderLabeledSlider(int sliderIndex, const char *label, int labelOffsetX)
-  {
-    CV::color(1, 1, 1);
-    int yPos = SLIDER_START_Y + SLIDER_SPACING_Y * sliderIndex;
-    int textX = SLIDER_INDICATOR_X1 - labelOffsetX;
-    CV::text(textX, yPos + 5, label);
-    slider[sliderIndex]->render();
-  }
-
-  void renderSliderRGB()
-  {
-    CV::color(color.r, color.g, color.b);
-    CV::rectFill(COLOR_PREVIEW_X1, COLOR_PREVIEW_Y1, COLOR_PREVIEW_X2, COLOR_PREVIEW_Y2);
-    for (int i = 0; i <= B; i++)
-    {
-      switch (i)
-      {
-      case R:
-        CV::color(1.0, 0, 0);
-        break;
-      case G:
-        CV::color(0, 1.0, 0);
-        break;
-      case B:
-        CV::color(0, 0, 1.0);
-        break;
-      }
-      CV::rectFill(SLIDER_INDICATOR_X1, SLIDER_INDICATOR_Y_START + SLIDER_SPACING_Y * i,
-                   SLIDER_INDICATOR_X2, SLIDER_INDICATOR_Y_START + 20 + SLIDER_SPACING_Y * i);
-      slider[i]->render();
-    }
-  }
-
-  void notOperating()
-  {
-    operation = -1;
-  }
-
-  void flip(FlipType flip)
-  {
-    Bmp *image;
-    image = layerManager->layers[layerManager->getActiveLayer()]->image;
-    FlipType currentFlip = image->getFlip();
-
-    switch (currentFlip)
-    {
-    case NONE:
-      image->setFlip(flip);
-      break;
-    case FLIP_VERTICAL:
-      image->setFlip(flip == FLIP_VERTICAL ? NONE : FLIP_BOTH);
-      break;
-    case FLIP_HORIZONTAL:
-      image->setFlip(flip == FLIP_HORIZONTAL ? NONE : FLIP_BOTH);
-      break;
-    case FLIP_BOTH:
-      image->setFlip(flip == FLIP_VERTICAL ? FLIP_HORIZONTAL : FLIP_VERTICAL);
-      break;
-    default:
-      break;
-    }
-  }
-  void load_brightness()
-  {
-    Bmp *image = layerManager->layers[layerManager->getActiveLayer()]->image;
-    image->setBrightness(slider[BRIGHTNESS]->value);
-  }
-
-  void functions() override
-  {
-
-    setColor();
-    applySliders();
-
-    if (!layerManager || layerManager->getActiveLayer() == -1)
-    {
-      std::cout << "\nNenhuma camada selecionada!";
-      return;
-    }
-    load_brightness();
-
-    if (operation == -1)
-    {
-      return;
-    }
-
-    if (state == -2)
-    {
-      switch (operation)
-      {
-      case 0:
-        layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
-        break;
-      case 1:
-        layerManager->layerActive()->addLine(mouseCoords, color.r, color.g, color.b);
-        break;
-      case 2:
-        layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
-        break;
-      default:
-        break;
-      }
-    }
-    else
-    {
-      switch (operation)
-      {
-      case 3:
-        radius = sqrt(pow(mouseCoords.x2 - mouseCoords.x1, 2) + pow(mouseCoords.y2 - mouseCoords.y1, 2)) / 2;
-        layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
-        break;
-      case 4:
-        layerManager->layerActive()->addRect(mouseCoords, color.r, color.g, color.b);
-        break;
-      case 5:
-        flip(FLIP_VERTICAL);
-        operation = -1;
-        break;
-      case 6:
-        flip(FLIP_HORIZONTAL);
-        operation = -1;
-        break;
-      default:
-        break;
-      }
-    }
   }
 };
 
@@ -538,6 +359,7 @@ public:
       if (buttons[index] && buttons[index]->Colidiu(x, y))
       {
         layerManager->setActiveLayer(index);
+        attBrightness = true;
         return true;
       }
       if (checkBox[index] && checkBox[index]->click(x, y))
@@ -589,6 +411,15 @@ public:
     return layerManager;
   }
 
+  bool shouldUpdateBrightness()
+  {
+    return attBrightness;
+  }
+  void resetBrightnessFlag()
+  {
+    attBrightness = false;
+  }
+
   void functions() override
   {
 
@@ -629,4 +460,215 @@ public:
     }
   }
 };
+
+class MenuFunctions : public Menu
+{
+  MenuLayer *menuLayer;
+
+public:
+  MenuFunctions(Coordinates coords, int numButtons) : Menu(coords, numButtons) {}
+
+  void setLayerManager(LayerManager *lm)
+  {
+    layerManager = lm;
+  }
+
+  void setMenuLayer(MenuLayer *menu)
+  {
+    menuLayer = menu;
+    layerManager = menuLayer->getLayerManager();
+  }
+
+  void sliderExtremites()
+  {
+    slider[RADIUS]->setExtremities(0.0, 100, 1.0);
+    slider[BRIGHTNESS]->setExtremities(0.0, 5, 1.0);
+  }
+
+  void init() override
+  {
+    createButtons();
+    createSliders();
+    sliderExtremites();
+    buttonsFunctionsSetImage();
+    applySliders();
+    setColor();
+  }
+
+  void buttonsFunctionsSetImage()
+  {
+    int offset = 3;
+    for (int i = 0; i < numButtons; i++)
+    {
+      int index = i + offset;
+      if (index < imgButtons.size())
+      {
+        buttons[i]->setImage(imgButtons[index].c_str());
+      }
+    }
+  }
+
+  void render()
+  {
+    CV::color(MENU_COLOR_R, MENU_COLOR_G, MENU_COLOR_B);      // Cor preta;
+    CV::rectFill(coords.x1, coords.y1, coords.x2, coords.y2); // Criar menu;
+    renderButtons();
+    renderSliders();
+  }
+  void renderSliders()
+  {
+    renderSliderRGB();
+    renderLabeledSlider(RADIUS, "RAIO", TEXT_OFFSET_RADIUS);
+    renderLabeledSlider(BRIGHTNESS, "BRILHO", TEXT_OFFSET_BRIGHTNESS);
+  }
+
+  void renderLabeledSlider(int sliderIndex, const char *label, int labelOffsetX)
+  {
+    CV::color(1, 1, 1);
+    int yPos = SLIDER_START_Y + SLIDER_SPACING_Y * sliderIndex;
+    int textX = SLIDER_INDICATOR_X1 - labelOffsetX;
+    CV::text(textX, yPos + 5, label);
+    slider[sliderIndex]->render();
+  }
+
+  void renderSliderRGB()
+  {
+    CV::color(color.r, color.g, color.b);
+    CV::rectFill(COLOR_PREVIEW_X1, COLOR_PREVIEW_Y1, COLOR_PREVIEW_X2, COLOR_PREVIEW_Y2);
+    for (int i = 0; i <= B; i++)
+    {
+      switch (i)
+      {
+      case R:
+        CV::color(1.0, 0, 0);
+        break;
+      case G:
+        CV::color(0, 1.0, 0);
+        break;
+      case B:
+        CV::color(0, 0, 1.0);
+        break;
+      }
+      CV::rectFill(SLIDER_INDICATOR_X1, SLIDER_INDICATOR_Y_START + SLIDER_SPACING_Y * i,
+                   SLIDER_INDICATOR_X2, SLIDER_INDICATOR_Y_START + 20 + SLIDER_SPACING_Y * i);
+      slider[i]->render();
+    }
+  }
+
+  void notOperating()
+  {
+    operation = -1;
+  }
+
+  void flip(FlipType flip)
+  {
+    Bmp *image;
+    image = layerManager->layers[layerManager->getActiveLayer()]->image;
+    FlipType currentFlip = image->getFlip();
+
+    switch (currentFlip)
+    {
+    case NONE:
+      image->setFlip(flip);
+      break;
+    case FLIP_VERTICAL:
+      image->setFlip(flip == FLIP_VERTICAL ? NONE : FLIP_BOTH);
+      break;
+    case FLIP_HORIZONTAL:
+      image->setFlip(flip == FLIP_HORIZONTAL ? NONE : FLIP_BOTH);
+      break;
+    case FLIP_BOTH:
+      image->setFlip(flip == FLIP_VERTICAL ? FLIP_HORIZONTAL : FLIP_VERTICAL);
+      break;
+    default:
+      break;
+    }
+  }
+
+  void load_brightness()
+  {
+    Bmp *image = layerManager->layers[layerManager->getActiveLayer()]->image;
+    image->setBrightness(brightness);
+  }
+
+  void updateBrightness(int index)
+  {
+    if (menuLayer->shouldUpdateBrightness())
+    {
+      slider[BRIGHTNESS]->setValue(layerManager->layers[index]->image->getBrightnesse());
+      menuLayer->resetBrightnessFlag();
+    }
+    else
+    {
+      load_brightness();
+    }
+  }
+
+  void functions() override
+  {
+
+    setColor();
+    applySliders();
+
+    int activeLayer = layerManager->getActiveLayer();
+    if (!layerManager || activeLayer == -1)
+    {
+      std::cout << "\nNenhuma camada selecionada!";
+      return;
+    }
+
+    updateBrightness(activeLayer);
+
+    if (operation == -1)
+    {
+      return;
+    }
+
+    printf("ola mundo\nOperation: %d", operation);
+    if (state == -2)
+    {
+      switch (operation)
+      {
+      case 0:
+        layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
+        break;
+      case 1:
+        layerManager->layerActive()->addLine(mouseCoords, color.r, color.g, color.b);
+        break;
+      case 2:
+        layerManager->layerActive()->removeElement(mouseCoords.x2, mouseCoords.y2);
+        break;
+
+      default:
+        break;
+      }
+    }
+    else
+    {
+      switch (operation)
+      {
+      case 2:
+        radius = sqrt(pow(mouseCoords.x2 - mouseCoords.x1, 2) + pow(mouseCoords.y2 - mouseCoords.y1, 2)) / 2;
+        layerManager->layerActive()->addCircle(mouseCoords.x1, mouseCoords.y1, radius, color.r, color.g, color.b);
+        break;
+      case 3:
+        layerManager->layerActive()->addRect(mouseCoords, color.r, color.g, color.b);
+        break;
+      case 4:
+        break;
+      case 5:
+        flip(FLIP_VERTICAL);
+        operation = -1;
+        break;
+      case 6:
+        flip(FLIP_HORIZONTAL);
+        operation = -1;
+        break;
+      default:
+        break;
+      }
+    }
+  }
+};
+
 #endif

@@ -1,17 +1,23 @@
 /*********************************************************************
-// Canvas para desenho, criada sobre a API OpenGL. Nao eh necessario conhecimentos de OpenGL para usar.
-//  Autor: Cesar Tadeu Pozzer
-//         02/2025
-//
-//  Pode ser utilizada para fazer desenhos, animacoes, e jogos simples.
-//  Tem tratamento de mouse e teclado
-//  Estude o OpenGL antes de tentar compreender o arquivo gl_canvas.cpp
-//
-//  Versao 2.1
-//
-//  Instru��es:
-//	  Para alterar a animacao, digite numeros entre 1 e 3
-// *********************************************************************/
+//  nome: Leandro Oliveira Galbarino do Nascimento
+    Foram realizadas todas implementações obrigatórias:
+    - Desenho com botão esquerdo do mouse
+    - Criação de diferentes camadas
+    - É possível ver qual camada está selecionada e alterar a camada.
+    - É possível adicionar mais imagens no botão [+] presente na interface, podendo adicionar quantas imagens quiser(Para isso é necessário adicionar mais imagens no array img[] presente em Menu);
+    - Através dos sliders é possível escolher a cor que deseja adicionar - com RGB.
+    - É possível fazer o flip da imagem (verticalmente e horizontalmente).
+    - Possível através do slider mudar o brilho da imagem
+    - Pode deixar visivel ou invisivel uma camada através da checkBox ao lado do botão da imagem.
+    - Foi usado botões, sliders e checkbox.
+    Extras:
+    -   A camada é composta pela imagem e pode ser adicionada formas geometricas e desenhar, porém são coisas diferente dentro da camada sendo assim flip e brilho mudam apenas as imagens e os desenho continuam intactos.
+    -   É possível adicionar Retangulos, Circulos como formas geometricas
+    -   É possível usar "lápis" que é uma linha que pode ser usada segurando o botão esquerdo do mouse.
+    -   É possível usar uma especie de pincel que altera seu raio através do Slider(RAIO), ele funciona da mesma maneira que o lápis, ou seja, ao segurar ele cria circulos continuamente. Foi usado circulo do canvas e não ponto, pois ponto é um pixel que mal da para enxergar, enquanto o círculo pode ficar maior atráves do raio, e menor também, parendo um pixel.
+    -   Através da vassoura é possível apagar formas e desenho(não se aplica a imagem), segurando com botão esquerdo irá apagar elementos adicionados na camada.
+    - Foi usado diferentes arquivos e classes da linguagem C++ para realizar a implementação do PhotoShop Caseiro
+    *********************************************************************/
 
 #include <GL/glut.h>
 #include <GL/freeglut_ext.h> //callback da wheel do mouse.
@@ -54,8 +60,7 @@ void menusCreate()
 {
     menuLayer = new MenuLayer(CoordMenuLayer);
     menuSide = new MenuFunctions(CoordMenuSide, BUTTONS_SIDE);
-    menuSide->setLayerManager(menuLayer->getLayerManager());
-
+    menuSide->setMenuLayer(menuLayer);
     menuSide->init();
     menuLayer->init();
 }
@@ -113,8 +118,8 @@ void mouse(int button, int state, int wheel, int direction, int _x, int _y)
 {
     static int x = 0; // Ponto inicial do clique ou do último ponto no arrasto
     static int y = 0;
-    
-    static int x_init = 0; 
+
+    static int x_init = 0;
     static int y_init = 0;
 
     if (state == 0) // botão pressionado

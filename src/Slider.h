@@ -51,6 +51,18 @@ public:
     value = minValue + t * (maxValue - minValue);
   }
 
+  void setValue(float val)
+  {
+    // Garante que o valor esteja dentro dos limites
+    if (val < minValue) val = minValue;
+    if (val > maxValue) val = maxValue;
+  
+    value = val;
+  
+    // Regra de três para calcular a posição do ponteiro
+    pointer = coords.x1 + ((value - minValue) / (maxValue - minValue)) * (coords.x2 - coords.x1);
+  }
+  
   void setPointer(int px)
   {
     pointer = std::max(coords.x1, std::min(px, coords.x2));
