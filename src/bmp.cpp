@@ -56,19 +56,6 @@ void Bmp::convertBGRtoRGB()
   }
 }
 
-// void Bmp::adjustPositionAfterRotation() {
-//   int oldWidth  = (rotation == ROTATE_90 || rotation == ROTATE_270) ? height : width;
-//   int oldHeight = (rotation == ROTATE_90 || rotation == ROTATE_270) ? width : height;
-
-//   int newWidth  = (rotation == ROTATE_0 || rotation == ROTATE_180) ? width : height;
-//   int newHeight = (rotation == ROTATE_0 || rotation == ROTATE_180) ? height : width;
-
-//   int centerX = posX + oldWidth / 2;
-//   int centerY = posY + oldHeight / 2;
-
-//   posX = centerX - newWidth / 2;
-//   posY = centerY - newHeight / 2;
-// }
 
 void Bmp::render()
 {
@@ -83,7 +70,7 @@ void Bmp::render()
       int srcY = y;
 
       // Coordenadas de origem de cor
-      int pos = srcY * bytesPerLine + srcX * 3;
+      int pos = (height - 1 - srcY) * bytesPerLine + srcX * 3;
       float r = (data[pos] / 255.0f) * brightness;
       float g = (data[pos + 1] / 255.0f) * brightness;
       float b = (data[pos + 2] / 255.0f) * brightness;
