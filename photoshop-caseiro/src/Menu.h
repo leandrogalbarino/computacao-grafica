@@ -64,6 +64,12 @@ typedef struct
 std::vector<std::string> img = {
     "t1/images/img3.bmp",
     "t1/images/img1.bmp",
+    "t1/images/img1.bmp",
+    "t1/images/img1.bmp",
+    "t1/images/img1.bmp",
+    "t1/images/img1.bmp",
+    "t1/images/img1.bmp",
+    "t1/images/img1.bmp",
     "t1/images/img2.bmp"};
 
 std::vector<std::string> imgButtons = {
