@@ -254,7 +254,7 @@ void render()
    // desenhaEspiral();
    // desenhaRelogio();
    // desenhaEngrenagem();
-   // desenhaSerra();
+   desenhaSerra();
 
    Sleep(10); // nao eh controle de FPS. Somente um limitador de FPS.
 }

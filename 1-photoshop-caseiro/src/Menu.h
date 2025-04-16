@@ -62,28 +62,28 @@ typedef struct
 } Color;
 
 std::vector<std::string> img = {
-    "t1/images/img3.bmp",
-    "t1/images/img1.bmp",
-    "t1/images/img1.bmp",
-    "t1/images/img1.bmp",
-    "t1/images/img1.bmp",
-    "t1/images/img1.bmp",
-    "t1/images/img1.bmp",
-    "t1/images/img1.bmp",
-    "t1/images/img2.bmp"};
+    "1-photoshop-caseiro/images/img3.bmp",
+    "1-photoshop-caseiro/images/img1.bmp",
+    "1-photoshop-caseiro/images/img1.bmp",
+    "1-photoshop-caseiro/images/img1.bmp",
+    "1-photoshop-caseiro/images/img1.bmp",
+    "1-photoshop-caseiro/images/img1.bmp",
+    "1-photoshop-caseiro/images/img1.bmp",
+    "1-photoshop-caseiro/images/img1.bmp",
+    "1-photoshop-caseiro/images/img2.bmp"};
 
 std::vector<std::string> imgButtons = {
-    "t1/images/buttons/add_layer.bmp",
-    "t1/images/buttons/swap_down.bmp",
-    "t1/images/buttons/swap_up.bmp",
+    "1-photoshop-caseiro/images/buttons/add_layer.bmp",
+    "1-photoshop-caseiro/images/buttons/swap_down.bmp",
+    "1-photoshop-caseiro/images/buttons/swap_up.bmp",
 
-    "t1/images/buttons/add_point.bmp",
-    "t1/images/buttons/add_line.bmp",
-    "t1/images/buttons/remove_elements.bmp",
-    "t1/images/buttons/add_circle.bmp",
-    "t1/images/buttons/add_square.bmp",
-    "t1/images/buttons/flip_vertical.bmp",
-    "t1/images/buttons/flip_horizontal.bmp",
+    "1-photoshop-caseiro/images/buttons/add_point.bmp",
+    "1-photoshop-caseiro/images/buttons/add_line.bmp",
+    "1-photoshop-caseiro/images/buttons/remove_elements.bmp",
+    "1-photoshop-caseiro/images/buttons/add_circle.bmp",
+    "1-photoshop-caseiro/images/buttons/add_square.bmp",
+    "1-photoshop-caseiro/images/buttons/flip_vertical.bmp",
+    "1-photoshop-caseiro/images/buttons/flip_horizontal.bmp",
 };
 
 class Menu
