@@ -15,7 +15,6 @@
 
 #include "gl_canvas2d.h"
 #include <GL/glut.h>
-#include "Vector2.h"
 
 int *scrWidth, *scrHeight;
 
@@ -71,14 +70,6 @@ void CV::line( float x1, float y1, float x2, float y2 )
    glEnd();
 }
 
-void CV::line(Vector2 p1, Vector2 p2)
-{
-   glBegin(GL_LINES);
-      glVertex2d(p1.x, p1.y);
-      glVertex2d(p2.x, p2.y);
-   glEnd();
-}
-
 void CV::rect( float x1, float y1, float x2, float y2 )
 {
    glBegin(GL_LINE_LOOP);
@@ -98,7 +89,7 @@ void CV::rectFill( float x1, float y1, float x2, float y2 )
       glVertex2d(x2, y1);
    glEnd();
 }
-void CV::rectFill(Vector2 p1, Vector2 p2 )
+void CV::rectFill( Vector2 p1, Vector2 p2 )
 {
    glBegin(GL_QUADS);
       glVertex2d(p1.x, p1.y);
