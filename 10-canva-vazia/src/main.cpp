@@ -7,10 +7,6 @@
 
 #include "gl_canvas2d.h"
 
-#include "Bola.h"
-#include "Relogio.h"
-#include "Botao.h"
-
 // #include <cmath>
 Vector2 p1, p2, p3;
 Vector2 v1, v2;
@@ -63,18 +59,16 @@ void calculaAng(Vector2 v1, Vector2 v2)
    CV::text(200, 200, text);
 }
 
+
+
+
+
+
+
+
 void render()
 {
-   CV::translate(100, 100);
-   int tamDesenho = 200;
-   v1 = p2 - p1;
-   v2 = p3 - p1;
-   v1.normalize();
-   v2.normalize();
-   // calculaAng(v1, v2);
 
-   desenhaVector(v1, tamDesenho);
-   desenhaVector(v2, tamDesenho);
    Sleep(10); // nao eh controle de FPS. Somente um limitador de FPS.
 }
 

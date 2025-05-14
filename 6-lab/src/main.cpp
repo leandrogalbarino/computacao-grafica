@@ -7,10 +7,6 @@
 
 #include "gl_canvas2d.h"
 
-#include "Bola.h"
-#include "Relogio.h"
-#include "Botao.h"
-
 // #include <cmath>
 Vector2 p1, p2, p3;
 Vector2 v1, v2;
@@ -63,18 +59,47 @@ void calculaAng(Vector2 v1, Vector2 v2)
    CV::text(200, 200, text);
 }
 
+// Para polinômios de grau 3, utilizam-se 4 pontos de controle (P0, P1, P2 e P3), e 4 funções
+// bases (com representação paramétrica).
+// o As funções de blending são usadas para gerar a curva a partir dos pontos de controle
+
+
+void drawBezierFunctions(){
+
+   Vector2 p[4];
+   int escalar_y = 180;
+   CV::color(1, 0, 0);
+
+   for (float t = 0; t < 1; t += 0.005){
+      p[0].y = (1 - t) * (1 - t) * (1 - t); //Polinomios
+      p[1].y= 3 * t * ((1 - t) * (1-t));
+      p[2].y = 3 * (t * t) * (1 - t);
+      p[3].y= t * t * t;
+      CV::color(1, 1, 0);
+      
+      for (int i = 0; i < 4; i++){
+         CV::point(p[i].x, p[i].y * escalar_y);
+         p[i].x++;
+      }
+   }
+
+}
+
+
+// P1(t) = (1-t)P0 + (t)P1
+// P2(t) = (1-t)P1 + (t)P2
+// 'void curvaBezier()
+// {
+//    Vector2 p[4];
+//    int escalar_y = 180;
+//    CV::color(1, 0, 0);
+   
+// }'
+
 void render()
 {
-   CV::translate(100, 100);
-   int tamDesenho = 200;
-   v1 = p2 - p1;
-   v2 = p3 - p1;
-   v1.normalize();
-   v2.normalize();
-   // calculaAng(v1, v2);
-
-   desenhaVector(v1, tamDesenho);
-   desenhaVector(v2, tamDesenho);
+   CV::translate(200, 200);
+   drawBezierFunctions();
    Sleep(10); // nao eh controle de FPS. Somente um limitador de FPS.
 }
 

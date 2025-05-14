@@ -118,16 +118,6 @@ void CV::polygon(float vx[], float vy[], int elems)
       }
    glEnd();
 }
-void CV::polygon(Vector2 v[], int elems)
-{
-   int cont;
-   glBegin(GL_LINE_LOOP);
-      for(cont=0; cont<elems; cont++)
-      {
-         glVertex2d(v[cont].x, v[cont].y);
-      }
-   glEnd();
-}
 
 void CV::polygonFill(float vx[], float vy[], int elems)
 {
@@ -174,36 +164,6 @@ void CV::circle( float x, float y, float radius, int div )
          x1 = (cos(ang)*radius);
          y1 = (sin(ang)*radius);
          glVertex2d(x1+x, y1+y);
-         ang+=inc;
-      }
-   glEnd();
-}
-
-void CV::circle( Vector2 v, float radius, int div )
-{
-   float ang = 0, x1, y1;
-   float inc = PI_2/div;
-   glBegin(GL_LINE_LOOP);
-      for(int lado = 1; lado <= div; lado++) //GL_LINE_LOOP desenha um poligono fechado. Liga automaticamente o primeiro e ultimio vertices.
-      {
-         x1 = (cos(ang)*radius);
-         y1 = (sin(ang)*radius);
-         glVertex2d(x1+v.x, y1+v.y);
-         ang+=inc;
-      }
-   glEnd();
-}
-
-void CV::circleFill( Vector2 v, float radius, int div )
-{
-   float ang = 0, x1, y1;
-   float inc = PI_2/div;
-   glBegin(GL_POLYGON);
-      for(int lado = 1; lado <= div; lado++) //GL_POLYGON desenha um poligono CONVEXO preenchido.
-      {
-         x1 = (cos(ang)*radius);
-         y1 = (sin(ang)*radius);
-         glVertex2d(x1+v.x, y1+v.y);
          ang+=inc;
       }
    glEnd();

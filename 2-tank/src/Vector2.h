@@ -1,6 +1,8 @@
 #ifndef __VECTOR_2_H__
 #define __VECTOR_2_H__
 
+#include "gl_canvas2d.h"
+
 class Vector2
 {
 public:

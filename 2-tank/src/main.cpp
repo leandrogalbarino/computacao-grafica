@@ -6,99 +6,56 @@
 #include <stdlib.h>
 
 #include "gl_canvas2d.h"
+#include "Tank.h"
+#include <cmath>
 
-#include "Bola.h"
-#include "Relogio.h"
-#include "Botao.h"
-
-// #include <cmath>
-Vector2 p1, p2, p3;
-Vector2 v1, v2;
-Vector2 origem;
-
+Tank *tank;
 // largura e altura inicial da tela . Alteram com o redimensionamento de tela.
-int screenWidth = 500, screenHeight = 500;
-
-int mouseX, mouseY; // variaveis globais do mouse para poder exibir dentro da render().
-
-// 1. Complementar operadores da classe Vecto2
-void desenharLinha()
-{
-   CV::color(1, 0, 0);
-   CV::line(p1, p2);
-   v1 = p2 - p1;
-   v1.normalize();
-   v1 = v1 * 200;
-   v1 = v1 / 10;
-
-   CV::line(origem, v1);
-}
-
-float produtoInterno(Vector2 v1, Vector2 v2)
-{
-   return (v1.x * v2.x + v1.y * v2.y);
-}
-
-float produto(Vector2 v1, Vector2 v2)
-{
-   float mod1 = v1.modulo();
-   float mod2 = v2.modulo();
-   return mod1 * mod2;
-}
-
-void desenhaVector(Vector2 v, int tam)
-{
-   CV::color(1, 0, 0);
-   Vector2 esc = v * tam;
-   CV::line(origem, esc);
-}
-
-void calculaAng(Vector2 v1, Vector2 v2)
-{
-   char text[50];
-   float angRad = acos(produtoInterno(v1, v2) / produto(v1, v2));
-   float angDeg = angRad * (180.0 / PI); // converter para graus
-
-   sprintf(text, "Angulo: %.2f", angDeg);
-   CV::text(200, 200, text);
-}
+int screenWidth = 1980, screenHeight = 1080;
 
 void render()
 {
-   CV::drawTank();
-   Sleep(10); // nao eh controle de FPS. Somente um limitador de FPS.
+   tank->render();
+   Sleep(10);
 }
 
 // funcao chamada toda vez que uma tecla for pressionada.
 void keyboard(int key)
 {
    if (key == 'a' || key == 'A')
-      tank.setTurningLeft(true);
+      tank->setTurningLeft(true);
    if (key == 'd' || key == 'D')
-      tank.setTurningRight(true);
+      tank->setTurningRight(true);
 }
 
 // funcao chamada toda vez que uma tecla for liberada
 void keyboardUp(int key)
 {
-   if (key == 'a' || key == 'A')
-      tank.setTurningLeft(false);
-   if (key == 'd' || key == 'D')
-      tank.setTurningRight(false);
+   if (key == 'a' || key == 'A'){
+      tank->setTurningLeft(false);
+   }
+   if (key == 'd' || key == 'D'){
+      tank->setTurningRight(false);
+   }
+   if(key == ' '){
+      tank->setProjectil(true);
+   }
 }
 
 // funcao para tratamento de mouse: cliques, movimentos e arrastos
 void mouse(int button, int state, int wheel, int direction, int x, int y)
 {
-   p2.set(x, y);
+   tank->setMousePositon(x, y);
+}
+
+void createGame()
+{
+   tank = new Tank();
 }
 
 int main(void)
 {
-   origem.set(0, 0);
-   p1.set(100, 100);
-   p2.set(100, 100);
-   p3.set(100, 500);
+   createGame();
    CV::init(&screenWidth, &screenHeight, "Coordenadas Polares");
    CV::run();
 }
