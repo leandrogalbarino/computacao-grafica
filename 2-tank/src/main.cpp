@@ -7,15 +7,29 @@
 
 #include "gl_canvas2d.h"
 #include "Tank.h"
+#include "Barrels.h"
+#include "Map.h"
 #include <cmath>
 
 Tank *tank;
+Barrels *barrels;
+Map *map;
 // largura e altura inicial da tela . Alteram com o redimensionamento de tela.
 int screenWidth = 1980, screenHeight = 1080;
 
 void render()
 {
-   tank->render();
+   map->render();
+   if (tank->shoot)
+   {
+      map->collideProj(tank->shootVector);
+      Barrel *barrel = barrels->collideBarrel(tank->shootVector);
+      if (barrel){
+         barrels->updateBarrelLife(barrel);
+         tank->setProjectil(false);
+      }
+   }
+   map->collideTank();
    Sleep(10);
 }
 
@@ -31,13 +45,16 @@ void keyboard(int key)
 // funcao chamada toda vez que uma tecla for liberada
 void keyboardUp(int key)
 {
-   if (key == 'a' || key == 'A'){
+   if (key == 'a' || key == 'A')
+   {
       tank->setTurningLeft(false);
    }
-   if (key == 'd' || key == 'D'){
+   if (key == 'd' || key == 'D')
+   {
       tank->setTurningRight(false);
    }
-   if(key == ' '){
+   if (key == ' ')
+   {
       tank->setProjectil(true);
    }
 }
@@ -51,6 +68,8 @@ void mouse(int button, int state, int wheel, int direction, int x, int y)
 void createGame()
 {
    tank = new Tank();
+   barrels = new Barrels();
+   map = new Map(tank, barrels);
 }
 
 int main(void)
