@@ -46,20 +46,25 @@ public:
         return (aux);
     }
 
+    float length() const
+    {
+        return sqrt(x * x + y * y);
+    }
+    
     Vector2 operator+(const Vector2 &v)
     {
         Vector2 aux(x + v.x, y + v.y);
         return (aux);
     }
 
-    Vector2 operator+(float sum)
+    Vector2 operator+(float sum) const
     {
         Vector2 aux(x + sum, y + sum);
         return (aux);
     }
 
     // Adicionem os demais overloads de operadores aqui.
-    Vector2 operator*(int esc)
+    Vector2 operator*(float esc) const
     {
         Vector2 aux(esc * x, esc * y);
         return (aux);
@@ -71,7 +76,7 @@ public:
         return (aux);
     }
 
-    Vector2 operator/(int div)
+    Vector2 operator/(float div)
     {
         Vector2 aux(x / div, y / div);
         return (aux);

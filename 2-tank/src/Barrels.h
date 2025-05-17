@@ -5,8 +5,8 @@
 #include "gl_canvas2d.h"
 #include "Vector2.h"
 #include <cmath>
-#include <ctime>
 #include <cstdlib>
+#include <ctime>
 #include <random>
 
 #define SHOOT_RADIUS 7
@@ -22,13 +22,8 @@ class Barrels
 {
 private:
   std::vector<Barrel *> barrels;
-  std::mt19937 *gen;
 
 public:
-  Barrels(std::mt19937 *gen)
-  {
-    this->gen = gen;
-  }
 
   ~Barrels()
   {
@@ -71,28 +66,6 @@ public:
       float y1 = barrel->point.y - RADIUS - 6;
       float y2 = barrel->point.y - RADIUS - 1;
       CV::rectFill(x1, y1, x2, y2);
-    }
-  }
-
-  void createRandom(Vector2 p1, Vector2 p2, int enemies)
-  {
-    float minX = p1.x + 5.0f;
-    float maxX = p2.x - 5.0f;
-    float minY = p1.y + 5.0f;
-    float maxY = p2.y - 5.0f;
-
-    std::uniform_real_distribution<float> distX(minX, maxX);
-    std::uniform_real_distribution<float> distY(minY, maxY);
-
-    for (int i = 0; i < enemies; i++)
-    {
-      float randomX = distX(*gen);
-      float randomY = distY(*gen);
-
-      if (!collideBarrel(Vector2(randomX, randomY), Vector2(randomX, randomY)))
-      {
-        createBarrel(Vector2(randomX, randomY));
-      }
     }
   }
 

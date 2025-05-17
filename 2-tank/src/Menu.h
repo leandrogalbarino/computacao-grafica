@@ -69,8 +69,8 @@ public:
   void createGame()
   {
     tank = new Tank();
-    barrels = new Barrels(gen);
-    map = new Map(tank, barrels);
+    barrels = new Barrels();
+    map = new Map(tank, barrels, gen);
     gameStatus = GAME_RUN;
   }
 
@@ -90,9 +90,8 @@ public:
     createGame();
   }
 
-  void game()
+  void tankShootCollideBarrel()
   {
-    map->render();
     if (tank->shoot)
     {
       map->collideProj(tank->shootVectorNew);
@@ -104,6 +103,27 @@ public:
           tank->score++;
       }
     }
+  }
+  // CONTINUAR DAQUI
+  void tankCollideBarrel()
+  {
+    for (int i = 0; i <= 4; i++)
+    {
+
+      Barrel *barrel = barrels->collideBarrel(tank->tankRect[i], tank->tankRect[i + 1]);
+      if (barrel)
+      {
+        barrels->updateBarrelLife(barrel);
+        tank->life -= 50;
+        tank->dir = tank->dir * -1;
+      }
+    }
+  }
+  void game()
+  {
+    map->render();
+    tankShootCollideBarrel();
+    tankCollideBarrel();
     map->collideTank();
 
     if (tank->life <= 0)
@@ -112,7 +132,7 @@ public:
       gameStatus = GAME_WIN;
   }
 
-  void gameFinish()
+  void gameMenu()
   {
     char mensageText[50];
     char scoreText[50];
@@ -175,7 +195,7 @@ public:
     if (gameStatus == GAME_RUN)
       game();
     else
-      gameFinish();
+      gameMenu();
   }
 };
 #endif
