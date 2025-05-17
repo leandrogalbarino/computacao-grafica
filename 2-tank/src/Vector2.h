@@ -52,27 +52,40 @@ public:
         return (aux);
     }
 
-    // Adicionem os demais overloads de operadores aqui.
-    Vector2 operator*(int escalar)
+    Vector2 operator+(float sum)
     {
-        Vector2 aux(escalar * x, escalar * y);
+        Vector2 aux(x + sum, y + sum);
         return (aux);
     }
 
-    Vector2 operator*(const Vector2 &v){
+    // Adicionem os demais overloads de operadores aqui.
+    Vector2 operator*(int esc)
+    {
+        Vector2 aux(esc * x, esc * y);
+        return (aux);
+    }
+
+    Vector2 operator*(const Vector2 &v)
+    {
         Vector2 aux(x * v.x, y * v.y);
         return (aux);
     }
 
-    Vector2 operator/(int div){
-        Vector2 aux(x/div, y/div);
+    Vector2 operator/(int div)
+    {
+        Vector2 aux(x / div, y / div);
         return (aux);
     }
 
-    float modulo(){
-        return std::sqrt(x * x + y * y);
+    float produtoEscalar(Vector2 v2)
+    {
+        return (x * v2.x + y * v2.y);
     }
 
+    float modulo()
+    {
+        return std::sqrt(x * x + y * y);
+    }
 };
 
 #endif

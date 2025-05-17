@@ -9,9 +9,10 @@
 #define X2 500
 #define Y1 -300
 #define Y2 300
-
 #define DANO_TANK 20
-#define ENEMIES 30
+#define ENEMIES 3
+
+
 class Map
 {
 public:
@@ -25,12 +26,41 @@ public:
     barrels->createRandom(p1, p2, ENEMIES);
   }
 
+  void drawScore()
+  {
+    char scoreText[50];
+    sprintf(scoreText, "Pontuacao: %d", tank->score);
+    Vector2 pText = Vector2(p1.x, p1.y - 20);
+    CV::color(BLACK);
+    CV::text(pText, scoreText);
+  }
+
   void render()
   {
     CV::rect(p1, p2);
+    drawScore();
     barrels->drawBarrels();
     tank->render();
   }
+
+    // static float timeAccumulator = 0.0f;
+    // static int frameCount = 0;
+    // static int fps = 0;
+
+    // timeAccumulator += deltaTime;
+    // frameCount++;
+
+    // if (timeAccumulator >= 1.0f) {
+    //     fps = frameCount;
+    //     frameCount = 0;
+    //     timeAccumulator = 0.0f;
+    // }
+
+    // // mostra o FPS na tela
+    // CV::color(0); // preto
+    // std::stringstream ss;
+    // ss << "FPS: " << fps;
+    // CV::text(10, height - 20, (char*)ss.str().c_str());
 
   void collideProj(Vector2 projectile)
   {
@@ -39,6 +69,7 @@ public:
       tank->setProjectil(false);
     }
   }
+
   void collideTank()
   {
     for (int i = 0; i < 4; i++)

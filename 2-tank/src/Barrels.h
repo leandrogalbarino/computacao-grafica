@@ -7,6 +7,8 @@
 #include <cmath>
 #include <ctime>
 #include <cstdlib>
+#include <random>
+
 #define SHOOT_RADIUS 7
 #define WIDTH_LIFE 20
 typedef struct Barrel
@@ -20,8 +22,27 @@ class Barrels
 {
 private:
   std::vector<Barrel *> barrels;
+  std::mt19937 *gen;
 
 public:
+  Barrels(std::mt19937 *gen)
+  {
+    this->gen = gen;
+  }
+
+  ~Barrels()
+  {
+    for (Barrel *b : barrels)
+    {
+      delete b; 
+    }
+  }
+
+  std::vector<Barrel *> getBarrels()
+  {
+    return barrels;
+  }
+
   void createBarrel(Vector2 p)
   {
     Barrel *barrel = new Barrel();
@@ -55,24 +76,27 @@ public:
 
   void createRandom(Vector2 p1, Vector2 p2, int enemies)
   {
-    srand(time(0));
-    int minX = (int)(p1.x * 100);
-    int maxX = (int)(p2.x * 100);
-    int minY = (int)(p1.y * 100);
-    int maxY = (int)(p2.y * 100);
+    float minX = p1.x + 5.0f;
+    float maxX = p2.x - 5.0f;
+    float minY = p1.y + 5.0f;
+    float maxY = p2.y - 5.0f;
+
+    std::uniform_real_distribution<float> distX(minX, maxX);
+    std::uniform_real_distribution<float> distY(minY, maxY);
 
     for (int i = 0; i < enemies; i++)
     {
-      float randomX = (minX + rand() % (maxX - minX + 1)) / 100.0f;
-      float randomY = (minY + rand() % (maxY - minY + 1)) / 100.0f;
-      if (!collideBarrel(Vector2(randomX, randomY)))
+      float randomX = distX(*gen);
+      float randomY = distY(*gen);
+
+      if (!collideBarrel(Vector2(randomX, randomY), Vector2(randomX, randomY)))
       {
         createBarrel(Vector2(randomX, randomY));
       }
     }
   }
 
-  void updateBarrelLife(Barrel *barrelToRemove)
+  bool updateBarrelLife(Barrel *barrelToRemove)
   {
     barrelToRemove->life -= 50;
 
@@ -84,28 +108,47 @@ public:
         {
           delete *it;
           barrels.erase(it);
-          break;
+          return true;
+          // Se matou retorna true
         }
       }
     }
+    return false;
   }
 
-  Barrel *collideBarrel(Vector2 p)
+  Barrel *collideBarrel(Vector2 pOld, Vector2 pNew)
   {
-    for (auto it = barrels.begin(); it != barrels.end();)
-    {
-      {
-        float dx = p.x - (*it)->point.x;
-        float dy = p.y - (*it)->point.y;
-        float distance = std::sqrt(dx * dx + dy * dy);
 
+    Vector2 d = pNew - pOld; // vetor de movimento
+    if (d.x == 0 && d.y == 0)
+    {
+      for (auto it = barrels.begin(); it != barrels.end(); ++it)
+      {
+        float dx = pOld.x - (*it)->point.x;
+        float dy = pOld.y - (*it)->point.y;
+        float distance = std::sqrt(dx * dx + dy * dy);
         if (distance <= SHOOT_RADIUS)
+          return *it;
+      }
+      return nullptr;
+    }
+
+    for (auto it = barrels.begin(); it != barrels.end(); ++it)
+    {
+      Vector2 f = pOld - (*it)->point;
+      float a = d.produtoEscalar(d);
+      float b = 2 * f.produtoEscalar(d);
+      float c_ = f.produtoEscalar(f) - SHOOT_RADIUS * SHOOT_RADIUS;
+      float discriminant = b * b - 4 * a * c_;
+
+      if (discriminant >= 0)
+      {
+        discriminant = sqrt(discriminant);
+        float t1 = (-b - discriminant) / (2 * a);
+        float t2 = (-b + discriminant) / (2 * a);
+        if ((t1 >= 0 && t1 <= 1) || (t2 >= 0 && t2 <= 1))
         {
           return (*it);
-        }
-        else
-        {
-          ++it;
         }
       }
     }
@@ -114,6 +157,7 @@ public:
 
   void drawBarrels()
   {
+    CV::color(RED);
     for (auto barrel : barrels)
     {
       CV::circleFill(barrel->point, 5, 20);

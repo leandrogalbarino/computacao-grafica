@@ -3,19 +3,22 @@
 
 #include "gl_canvas2d.h"
 #include "Vector2.h"
+#include <ctime>
 
 #define RED 2
 #define GREEN 3
+#define BLACK 0
 
 #define WIDTH 75
 #define HEIGHT 50
 #define RADIUS 15
 
 #define PROJECTILE_SIZE 10
-#define PROJECTILE_SPEED 10
 
+#define PROJECTILE_SPEED 900
 #define TANK_ROTATION_SPEED 1
-#define TANK_SPEED 0.7
+#define TANK_SPEED 90
+
 #define TANK_CANNON_SIZE 70
 #define MAX_LIFE 200
 
@@ -25,13 +28,15 @@ public:
   bool turningRight;
   bool turningLeft;
   int life;
+  int score;
   Vector2 dir, p2;
   Vector2 vectorTiro, vectorTank;
   Vector2 origem;
   Vector2 corners[4];
   Vector2 tankRect[4];
-
-  Vector2 shootVector;
+  clock_t lastFrame;
+  Vector2 shootVectorNew;
+  Vector2 shootVectorOld;
   Vector2 shootVectorDir;
   bool shoot;
 
@@ -45,6 +50,8 @@ public:
     turningLeft = false;
     shoot = false;
     life = MAX_LIFE;
+    score = 0;
+    lastFrame = clock();
     corners[0] = Vector2(-WIDTH / 2, -HEIGHT / 2);
     corners[1] = Vector2(WIDTH / 2, -HEIGHT / 2);
     corners[2] = Vector2(WIDTH / 2, HEIGHT / 2);
@@ -80,7 +87,8 @@ public:
     shoot = value;
     if (value)
     {
-      shootVector = origem; // <-- Começa da posição do tanque
+      shootVectorNew = origem; // <-- Começa da posição do tanque
+      shootVectorOld = origem; // <-- Começa da posição do tanque
       shootVectorDir = p2 - origem;
       shootVectorDir.normalize();
     }
@@ -93,10 +101,11 @@ public:
     {
       return;
     }
-    shootVector.x += shootVectorDir.x * PROJECTILE_SPEED * deltaTime;
-    shootVector.y += shootVectorDir.y * PROJECTILE_SPEED * deltaTime;
+    shootVectorOld = shootVectorNew;
+    shootVectorNew.x += shootVectorDir.x * PROJECTILE_SPEED * deltaTime;
+    shootVectorNew.y += shootVectorDir.y * PROJECTILE_SPEED * deltaTime;
     CV::color(RED);
-    CV::circleFill(shootVector, 5, 20);
+    CV::circleFill(shootVectorNew, 5, 20);
   }
 
   void tankUpdate(float deltaTime)
@@ -104,9 +113,9 @@ public:
     float theta = 0;
 
     if (turningLeft)
-      theta = -TANK_ROTATION_SPEED * deltaTime;
+      theta = +TANK_ROTATION_SPEED * deltaTime;
     else if (turningRight)
-      theta = TANK_ROTATION_SPEED * deltaTime;
+      theta = -TANK_ROTATION_SPEED * deltaTime;
     else
       return;
 
@@ -142,13 +151,14 @@ public:
 
   void moveTank(float deltaTime)
   {
-    origem.x += TANK_SPEED * dir.x;
-    origem.y += TANK_SPEED * dir.y;
+    origem.x += TANK_SPEED * dir.x * deltaTime;
+    origem.y += TANK_SPEED * dir.y * deltaTime;
   }
 
   void drawLife()
   {
-    if(life <= 0){
+    if (life <= 0)
+    {
       return;
     }
 
@@ -171,17 +181,21 @@ public:
   void render()
   {
     // Calcular1 deltaTime  FRAMES POR SEC
-    tankUpdate(0.01); // deltaTime
+    clock_t now = clock();
+    float deltaTime = float(now - lastFrame) / CLOCKS_PER_SEC;
+    lastFrame = now;
+
+    tankUpdate(deltaTime); // deltaTime
     vectorTiro = p2 - origem;
     vectorTank = dir;
     vectorTiro.normalize();
     vectorTank.normalize();
-    projectil(1); // deltaTime
+    projectil(deltaTime); // deltaTime
 
     CV::translate(origem.x, origem.y);
     drawLife();
     CV::color(RED);
-    moveTank(0);
+    moveTank(deltaTime);
     tankDirection();
 
     drawVector(vectorTiro);
