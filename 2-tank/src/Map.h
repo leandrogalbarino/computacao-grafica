@@ -11,8 +11,8 @@
 #include <random>
 #include <cstdlib>
 
-#define DANO_TANK 20
-#define ENEMIES 3
+#define MAP_DANO_TANK 20
+#define ENEMIES 20
 
 struct BezierCurve
 {
@@ -31,103 +31,97 @@ struct BezierCurve
 
 class Map
 {
-public:
-  std::vector<BezierCurve> curvas;
-  Tank *tank;
-  Barrels *barrels;
-  std::mt19937 *gen;
-  Vector2 pScore;
-  float esc;
-
-  Map(Tank *tank, Barrels *barrels, std::mt19937 *gen) : tank(tank), barrels(barrels), gen(gen)
+private:
+  void createCurvas()
   {
-    createCurvas();
-    createEnemies();
-    esc = 0.6;
-    // posição do SCORE não muda.
-    pScore = Vector2(-500 + tank->origem.x, -320 + tank->origem.y);
-  }
+    const int N = 6;
+    const float radius = 300.0f;
+    const float noise = 80.0f; // Controle de variação dos pontos
 
-void createCurvas()
-{
-    // Pontos relativos originais (curva externa)
-    Vector2 points[] = {
-            Vector2(-300, 0),
-            Vector2(-20, 250),
-            Vector2(150, 250),
-            Vector2(300, 0),
-            Vector2(150, -250),
-            Vector2(-150, -250)
-        };
+    Vector2 points[N];
 
-    // Calcula o centro geométrico
+    for (int i = 0; i < N; ++i)
+    {
+      float angle = 2 * M_PI * i / N;
+      float r = radius + (rand() % (int)(2 * noise)) - noise; // Variação entre [-noise, +noise]
+      float x = r * cos(angle);
+      float y = r * sin(angle);
+      points[i] = Vector2(x, y);
+    }
+
+    // Centro geométrico
     Vector2 centro(0, 0);
     for (const auto &p : points)
-    {
-        centro = centro + p;
-    }
-    centro = centro * (1.0f / 6);
+      centro = centro + p;
+    centro = centro * (1.0f / N);
 
-    // Cria curvas externas (original)
-    Vector2 p0 = points[0] - centro + tank->origem;
-    Vector2 p1 = points[1] - centro + tank->origem;
-    Vector2 p2 = points[2] - centro + tank->origem;
-    Vector2 p3 = points[3] - centro + tank->origem;
-    Vector2 p4 = points[4] - centro + tank->origem;
-    Vector2 p5 = points[5] - centro + tank->origem;
-
-    // Limpa curvas existentes e adiciona as externas
+    // Curvas externas suaves (Catmull-Rom -> Bézier cúbica)
     curvas.clear();
-    curvas.push_back({p0, p1, p2, p3});
-    curvas.push_back({p3, p4, p5, p0});
-
-    // Cria curvas internas com verificação de distância
-    float minDistance = 200.0f;  // Aumentei a distância mínima para garantir
-    esc = 0.6f;         // Começa com escala maior
-    
-    // Encontra a escala segura
-    bool escalaValida = false;
-    while (!escalaValida && esc > 0.1f)  // Limite mínimo para evitar escala muito pequena
+    for (int i = 0; i < N; i++)
     {
-        escalaValida = true;
-        for (int i = 0; i < 6; i++)
+      Vector2 p0 = points[(i - 1 + N) % N];
+      Vector2 p1 = points[i];
+      Vector2 p2 = points[(i + 1) % N];
+      Vector2 p3 = points[(i + 2) % N];
+
+      Vector2 b0 = p1 - centro + tank->origem;
+      Vector2 b1 = p1 + (p2 - p0) / 6.0f - centro + tank->origem;
+      Vector2 b2 = p2 - (p3 - p1) / 6.0f - centro + tank->origem;
+      Vector2 b3 = p2 - centro + tank->origem;
+
+      curvas.push_back({b0, b1, b2, b3});
+    }
+
+    // Curvas internas
+    float minDistance = 500.0f;
+    scale = 0.5f;
+    bool scaleValid = false;
+    while (!scaleValid && scale > 0.1f)
+    {
+      scaleValid = true;
+      for (int i = 0; i < N; i++)
+      {
+        Vector2 pInternal = centro + (points[i] - centro) * scale;
+        Vector2 pExternal = points[i];
+        if ((pInternal - pExternal).length() > minDistance)
         {
-            Vector2 pontoInterno = centro + (points[i] - centro) * esc;
-            Vector2 pontoExterno = points[i];
-            
-            // Verifica distância entre os pontos correspondentes
-            if ((pontoInterno - pontoExterno).length() < minDistance)
-            {
-                esc -= 0.05f;
-                escalaValida = false;
-                break;
-            }
+          scale -= 0.05f;
+          scaleValid = false;
+          break;
         }
+      }
     }
 
-    // Cria pontos internos com a escala ajustada
+    // Gera pontos internos
     Vector2 ip[6];
-    for (int i = 0; i < 6; i++)
+    for (int i = 0; i < N; i++)
+      ip[i] = centro + (points[i] - centro) * scale;
+
+    for (int i = 0; i < N; i++)
     {
-        ip[i] = centro + (points[i] - centro) * esc + (tank->origem - centro);
+      Vector2 p0 = ip[(i - 1 + N) % N];
+      Vector2 p1 = ip[i];
+      Vector2 p2 = ip[(i + 1) % N];
+      Vector2 p3 = ip[(i + 2) % N];
+
+      Vector2 b0 = p1 - centro + tank->origem;
+      Vector2 b1 = p1 + (p2 - p0) / 6.0f - centro + tank->origem;
+      Vector2 b2 = p2 - (p3 - p1) / 6.0f - centro + tank->origem;
+      Vector2 b3 = p2 - centro + tank->origem;
+
+      curvas.push_back({b0, b1, b2, b3});
     }
 
-    // Adiciona curvas internas
-    curvas.push_back({ip[0], ip[1], ip[2], ip[3]});
-    curvas.push_back({ip[3], ip[4], ip[5], ip[0]});
-
-    // Posiciona o tanque em uma área segura (no meio do caminho)
-    float escalaSegura = (1.0f + esc) * 0.5f;  // Ponto médio entre as curvas
-    Vector2 safePosition = centro + (points[0] - centro) * escalaSegura + (tank->origem - centro);
+    float safeScale = (1.0f + scale) * 0.5f;
+    Vector2 safePosition = centro + (points[0] - centro) * safeScale + (tank->origem - centro);
     tank->origem = safePosition;
-}
+  }
 
   void createEnemies()
   {
-    int criados = 0;
-    int tentativas = 0;
+    int created = 0;
+    int attempts = 0;
 
-    // Região de geração baseada em uma bounding box "razoável"
     float minX = -500.0f;
     float maxX = 500.0f;
     float minY = -500.0f;
@@ -136,7 +130,7 @@ void createCurvas()
     std::uniform_real_distribution<float> distX(minX, maxX);
     std::uniform_real_distribution<float> distY(minY, maxY);
 
-    while (criados < ENEMIES && tentativas < ENEMIES * 50)
+    while (created < ENEMIES && attempts < ENEMIES * 50)
     {
       float x = distX(*gen);
       float y = distY(*gen);
@@ -145,19 +139,11 @@ void createCurvas()
       if (isPointInsideClosedArea(ponto) && !barrels->collideBarrel(ponto, ponto))
       {
         barrels->createBarrel(ponto);
-        criados++;
+        created++;
       }
 
-      tentativas++;
+      attempts++;
     }
-  }
-
-  void drawScore()
-  {
-    char scoreText[50];
-    sprintf(scoreText, "Pontuacao: %d", tank->score);
-    CV::color(BLACK);
-    CV::text(pScore, scoreText);
   }
 
   bool isPointInsideClosedArea(Vector2 point)
@@ -171,7 +157,6 @@ void createCurvas()
       {
         Vector2 current = curva.evaluate(t);
 
-        // Verifica se o raio horizontal para a direita cruza este segmento
         if ((last.y > point.y) != (current.y > point.y))
         {
           float xIntersect = (point.y - last.y) * (current.x - last.x) / (current.y - last.y) + last.x;
@@ -180,13 +165,27 @@ void createCurvas()
             intersections++;
           }
         }
-
         last = current;
       }
     }
 
-    // Se o número de interseções for ímpar, o ponto está dentro
     return (intersections % 2) == 1;
+  }
+
+public:
+  std::vector<BezierCurve> curvas;
+  Tank *tank;
+  Barrels *barrels;
+  std::mt19937 *gen;
+  Vector2 pScore;
+  float scale;
+
+  Map(Tank *tank, Barrels *barrels, std::mt19937 *gen) : tank(tank), barrels(barrels), gen(gen)
+  {
+    createCurvas();
+    createEnemies();
+    scale = 0.6;
+    pScore = Vector2(-500 + tank->origem.x, -380 + tank->origem.y);
   }
 
   void drawCurves()
@@ -203,6 +202,15 @@ void createCurvas()
       }
     }
   }
+
+  void drawScore()
+  {
+    char scoreText[50];
+    sprintf(scoreText, "Pontuacao: %d", tank->score);
+    CV::color(BLACK);
+    CV::text(pScore, scoreText);
+  }
+
   void render()
   {
     drawCurves();
@@ -210,10 +218,10 @@ void createCurvas()
     barrels->drawBarrels();
     tank->render();
   }
-  // OK
+
   void collideProj(Vector2 projectile)
   {
-    if (!isPointInsideClosedArea(projectile))
+    if (tank->shoot && !isPointInsideClosedArea(projectile))
     {
       tank->setProjectil(false);
     }
@@ -226,11 +234,12 @@ void createCurvas()
       float tankX = tank->tankRect[i].x + tank->origem.x;
       float tankY = tank->tankRect[i].y + tank->origem.y;
       Vector2 pos(tankX, tankY);
+      clock_t now = clock();
+      double elapsedMs = (double)(now - tank->lastCollision) * 1000.0 / CLOCKS_PER_SEC;
 
-      if (!isPointInsideClosedArea(pos))
+      if (!isPointInsideClosedArea(pos) && elapsedMs > COLLISION_COOLDOWN_MS)
       {
-        tank->life -= DANO_TANK;
-        tank->dir = tank->dir * -1;
+        tank->UpdateCollision(MAP_DANO_TANK, now);
         break;
       }
     }

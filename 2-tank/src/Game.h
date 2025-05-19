@@ -1,5 +1,5 @@
-#ifndef __MENU_H_
-#define __MENU_H_
+#ifndef __GAME_H_
+#define __GAME_H_
 
 #include "gl_canvas2d.h"
 #include "Tank.h"
@@ -11,12 +11,15 @@
 #define GAME_RUN 0
 #define GAME_OVER 1
 #define GAME_WIN 2
-#define CARAC 12 // carcteres das mensagens;
-#define NEW_GAME 0
-#define END_GAME 1
-#define CLICK 1
+#define GAME_MENU 3
 
-class Menu
+#define NEW_GAME 0
+#define ALTER_MAP_POINTS 1
+#define END_GAME 2
+#define CLICK 1
+#define BUTTONS 3
+
+class Game
 {
 private:
   std::mt19937 *gen;
@@ -24,34 +27,35 @@ private:
   int screenHeight;
 
 public:
-  int gameStatus;
+  int status;
   Tank *tank;
   Barrels *barrels;
   Map *map;
-  Button bControls[2];
+  Button bControls[3];
 
-  Menu(int width, int height, std::mt19937 *generator)
+  Game(int width, int height, std::mt19937 *generator)
   {
-    gameStatus = GAME_RUN;
     screenWidth = width;
     screenHeight = height;
+    tank = nullptr;
+    barrels = nullptr;
+    map = nullptr;
     gen = generator;
+    status = GAME_MENU;
     createButtons();
-    createGame();
   }
 
   void createButtons()
   {
     int textWidth = std::max(
-                        (int)strlen("Novo Jogo!"),
-                        (int)strlen("Fechar!")) *
+                        (int)strlen("Novo Jogo!"), (int)strlen("Editar Pista!")) *
                     CV::getPixelsTextSize();
     Vector2 centroTela(screenWidth / 2, screenHeight / 2);
 
     int alturaBotao = 50;
     int espacamento = 10;
 
-    for (int i = 0; i < 2; i++)
+    for (int i = 0; i < BUTTONS; i++)
     {
       float top = (centroTela.y - 30) - ((alturaBotao + espacamento) * i);
       float bottom = top - alturaBotao;
@@ -64,6 +68,7 @@ public:
     }
     bControls[NEW_GAME].setMensage("Novo Jogo!");
     bControls[END_GAME].setMensage("Fechar!");
+    bControls[ALTER_MAP_POINTS].setMensage("Editar Pista!");
   }
 
   void createGame()
@@ -71,7 +76,7 @@ public:
     tank = new Tank();
     barrels = new Barrels();
     map = new Map(tank, barrels, gen);
-    gameStatus = GAME_RUN;
+    status = GAME_RUN;
   }
 
   void displacerGame()
@@ -94,7 +99,6 @@ public:
   {
     if (tank->shoot)
     {
-      map->collideProj(tank->shootVectorNew);
       Barrel *barrel = barrels->collideBarrel(tank->shootVectorOld, tank->shootVectorNew);
       if (barrel)
       {
@@ -104,57 +108,82 @@ public:
       }
     }
   }
-  // CONTINUAR DAQUI
+
   void tankCollideBarrel()
   {
+    Vector2 tankCoord0;
+    Vector2 tankCoordsOld;
+
     for (int i = 0; i <= 4; i++)
     {
+      float tankX = tank->tankRect[i].x + tank->origem.x;
+      float tankY = tank->tankRect[i].y + tank->origem.y;
+      Vector2 tankCoords = Vector2(tankX, tankY);
+      if (i == 0)
+      {
+        tankCoord0 = tankCoords;
+        tankCoordsOld = tankCoords;
+        continue;
+      }
 
-      Barrel *barrel = barrels->collideBarrel(tank->tankRect[i], tank->tankRect[i + 1]);
-      if (barrel)
+      Barrel *barrel = barrels->collideBarrel(tankCoordsOld, i != 4 ? tankCoords : tankCoord0);
+      clock_t now = clock();
+      double elapsedMs = (double)(now - tank->lastCollision) * 1000.0 / CLOCKS_PER_SEC;
+
+      if (barrel && elapsedMs > COLLISION_COOLDOWN_MS)
       {
         barrels->updateBarrelLife(barrel);
-        tank->life -= 50;
-        tank->dir = tank->dir * -1;
+        tank->UpdateCollision(BARREL_DANO_TANK, now);
+        break;
       }
+      tankCoordsOld = tankCoords;
     }
   }
-  void game()
+
+  void gameRun()
   {
     map->render();
     tankShootCollideBarrel();
     tankCollideBarrel();
+    map->collideProj(tank->shootVectorNew);
     map->collideTank();
 
     if (tank->life <= 0)
-      gameStatus = GAME_OVER;
+      status = GAME_OVER;
     if (barrels->getBarrels().size() <= 0)
-      gameStatus = GAME_WIN;
+      status = GAME_WIN;
   }
 
   void gameMenu()
   {
     char mensageText[50];
     char scoreText[50];
-    if (gameStatus == GAME_WIN)
-      sprintf(mensageText, "Voce venceu!");
-    else
-      sprintf(mensageText, "Voce perdeu!");
-    sprintf(scoreText, "Pontuacao: %d", tank->score);
-
-    int mensageWidth = strlen(mensageText) * CV::getPixelsTextSize();
-    int scoreWidth = strlen(scoreText) * CV::getPixelsTextSize();
-
+    int scoreWidth, mensageWidth;
     Vector2 centerScreen(screenWidth / 2, screenHeight / 2);
-    Vector2 p1Text(centerScreen.x - mensageWidth / 2, centerScreen.y);
-    Vector2 p2Text(centerScreen.x - scoreWidth / 2, centerScreen.y - 20);
+
+    if (status == GAME_WIN)
+      sprintf(mensageText, "Voce venceu!");
+    else if (status == GAME_OVER)
+      sprintf(mensageText, "Voce perdeu!");
+    else
+      sprintf(mensageText, "GTA 2D");
 
     CV::color(RED);
+    mensageWidth = strlen(mensageText) * CV::getPixelsTextSize();
+    Vector2 p1Text(centerScreen.x - mensageWidth / 2, centerScreen.y);
     CV::text(p1Text, mensageText);
-    CV::color(BLACK);
-    CV::text(p2Text, scoreText);
-    bControls[NEW_GAME].render();
-    bControls[END_GAME].render();
+
+    if (status != GAME_MENU)
+    {
+      CV::color(BLACK);
+      sprintf(scoreText, "Pontuacao: %d", tank->score);
+      scoreWidth = strlen(scoreText) * CV::getPixelsTextSize();
+      Vector2 p2Text(centerScreen.x - scoreWidth / 2, centerScreen.y - 20);
+      CV::text(p2Text, scoreText);
+    }
+
+    for (int i = 0; i < BUTTONS; i++)
+      bControls[i].render();
   }
 
   // EVENTS
@@ -162,15 +191,12 @@ public:
   {
     if (state == CLICK)
     {
-
       if (bControls[NEW_GAME].collided(x, y))
-      {
         newGame();
-      }
+      else if(bControls[ALTER_MAP_POINTS].collided(x,y))
+        newGame();
       else if (bControls[END_GAME].collided(x, y))
-      {
         exit(0);
-      }
     }
   }
 
@@ -182,18 +208,17 @@ public:
       tank->setTurningRight(value);
   }
 
-  void
-  mouseTankEvents(float x, float y, int state)
+  void mouseTankEvents(float x, float y, int state)
   {
     tank->setMousePositon(x, y);
     if (state == CLICK)
       tank->setProjectil(true);
   }
 
-  void gameLoop()
+  void loop()
   {
-    if (gameStatus == GAME_RUN)
-      game();
+    if (status == GAME_RUN)
+      gameRun();
     else
       gameMenu();
   }

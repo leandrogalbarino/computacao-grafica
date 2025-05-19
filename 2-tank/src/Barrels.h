@@ -11,6 +11,8 @@
 
 #define SHOOT_RADIUS 7
 #define WIDTH_LIFE 20
+#define BARREL_DANO_TANK 50
+
 typedef struct Barrel
 {
   int maxLife;

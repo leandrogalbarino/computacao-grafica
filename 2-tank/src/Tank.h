@@ -9,18 +9,19 @@
 #define GREEN 3
 #define BLACK 0
 
-#define WIDTH 75
-#define HEIGHT 50
-#define RADIUS 15
+#define WIDTH 50
+#define HEIGHT 25
+#define RADIUS 7
 
-#define PROJECTILE_SIZE 10
+#define PROJECTILE_SIZE 5
 
 #define PROJECTILE_SPEED 900
 #define TANK_ROTATION_SPEED 1
 #define TANK_SPEED 90
 
-#define TANK_CANNON_SIZE 70
+#define TANK_CANNON_SIZE 50
 #define MAX_LIFE 200
+#define COLLISION_COOLDOWN_MS 500
 
 class Tank
 {
@@ -38,12 +39,13 @@ public:
   Vector2 shootVectorNew;
   Vector2 shootVectorOld;
   Vector2 shootVectorDir;
+  clock_t lastCollision;
   bool shoot;
 
   Tank()
   {
     origem = Vector2(600, 400);
-    dir = Vector2(1, 0);
+    dir = Vector2(0, 1);
     vectorTank = Vector2(1, 0);
     p2 = dir;
     turningRight = false;
@@ -51,6 +53,7 @@ public:
     shoot = false;
     life = MAX_LIFE;
     score = 0;
+    lastCollision = 0;
     lastFrame = clock();
     corners[0] = Vector2(-WIDTH / 2, -HEIGHT / 2);
     corners[1] = Vector2(WIDTH / 2, -HEIGHT / 2);
@@ -93,7 +96,14 @@ public:
       shootVectorDir.normalize();
     }
   }
-
+  void UpdateCollision(int life, clock_t now)
+  {
+    this->life -= life;
+    dir = dir * -1;
+    lastCollision = now;
+  }
+  
+  
   void projectil(float deltaTime)
   {
 
