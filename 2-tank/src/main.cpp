@@ -36,6 +36,8 @@ void mouse(int button, int state, int wheel, int direction, int x, int y)
 {
    if (game->status == GAME_RUN)
       game->mouseTankEvents(x, y, state);
+   else if(game->status == GAME_ALTER)
+      game->createMapAlter(x,y, state);
    else
       game->buttonsEvents(x, y, state);
 }

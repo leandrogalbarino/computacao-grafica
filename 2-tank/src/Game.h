@@ -8,7 +8,9 @@
 #include "Button.h"
 #include "Vector2.h"
 
+#define GAME_ALTER -1
 #define GAME_RUN 0
+
 #define GAME_OVER 1
 #define GAME_WIN 2
 #define GAME_MENU 3
@@ -17,7 +19,11 @@
 #define ALTER_MAP_POINTS 1
 #define END_GAME 2
 #define CLICK 1
-#define BUTTONS 3
+#define N_BUTTONS_MENU 3
+#define BUTTON_ALTER_MAP 3
+
+// #define TYPE_ALTER
+// #define TYPE_NORMAL
 
 class Game
 {
@@ -31,7 +37,9 @@ public:
   Tank *tank;
   Barrels *barrels;
   Map *map;
-  Button bControls[3];
+  Button bControls[4];
+  std::vector<Vector2> points;
+  int type;
 
   Game(int width, int height, std::mt19937 *generator)
   {
@@ -42,7 +50,27 @@ public:
     map = nullptr;
     gen = generator;
     status = GAME_MENU;
+    type = NEW_GAME;
     createButtons();
+  }
+
+  void createButtonAlter()
+  {
+    const int padding = 10;
+    int textWidth = (strlen("Criar Pista!") + padding) * CV::getPixelsTextSize();
+    Vector2 centroTela(screenWidth / 2, screenHeight / 2);
+    int alturaBotao = 50;
+    int espacamento = 10;
+    float top = (centroTela.y - 30) - ((alturaBotao + espacamento));
+    float bottom = top - alturaBotao;
+
+    bControls[BUTTON_ALTER_MAP].setPosition(
+        centroTela.x - textWidth / 2,
+        bottom,
+        centroTela.x + textWidth / 2,
+        top);
+
+    bControls[BUTTON_ALTER_MAP].setMensage("Criar Pista!");
   }
 
   void createButtons()
@@ -55,7 +83,7 @@ public:
     int alturaBotao = 50;
     int espacamento = 10;
 
-    for (int i = 0; i < BUTTONS; i++)
+    for (int i = 0; i < N_BUTTONS_MENU; i++)
     {
       float top = (centroTela.y - 30) - ((alturaBotao + espacamento) * i);
       float bottom = top - alturaBotao;
@@ -69,6 +97,7 @@ public:
     bControls[NEW_GAME].setMensage("Novo Jogo!");
     bControls[END_GAME].setMensage("Fechar!");
     bControls[ALTER_MAP_POINTS].setMensage("Editar Pista!");
+    createButtonAlter();
   }
 
   void createGame()
@@ -76,11 +105,13 @@ public:
     tank = new Tank();
     barrels = new Barrels();
     map = new Map(tank, barrels, gen);
+    map->init(type, points);
     status = GAME_RUN;
   }
 
   void displacerGame()
   {
+    points.clear();
     delete tank;
     delete barrels;
     delete map;
@@ -92,7 +123,28 @@ public:
   void newGame()
   {
     displacerGame();
+    type = NEW_GAME;
     createGame();
+  }
+
+  void createAlterMap()
+  {
+    displacerGame();
+    type = ALTER_MAP_POINTS;
+    status = GAME_ALTER;
+  }
+
+  void createMapAlter(float x, float y, int state)
+  {
+    if (state == CLICK)
+    {
+      if (bControls[BUTTON_ALTER_MAP].collided(x, y))
+      {
+        createGame();
+        return;
+      }
+      points.push_back(Vector2(x, y));
+    }
   }
 
   void tankShootCollideBarrel()
@@ -154,6 +206,14 @@ public:
       status = GAME_WIN;
   }
 
+  void gameAlter()
+  {
+    bControls[BUTTON_ALTER_MAP].render();
+    CV::color(RED);
+    for (const Vector2 &point : points)
+      CV::circleFill(point, 7, 20);
+  }
+
   void gameMenu()
   {
     char mensageText[50];
@@ -182,7 +242,7 @@ public:
       CV::text(p2Text, scoreText);
     }
 
-    for (int i = 0; i < BUTTONS; i++)
+    for (int i = 0; i < N_BUTTONS_MENU; i++)
       bControls[i].render();
   }
 
@@ -192,9 +252,15 @@ public:
     if (state == CLICK)
     {
       if (bControls[NEW_GAME].collided(x, y))
+      {
+        type = NEW_GAME;
         newGame();
-      else if(bControls[ALTER_MAP_POINTS].collided(x,y))
-        newGame();
+      }
+      else if (bControls[ALTER_MAP_POINTS].collided(x, y))
+      {
+        type = ALTER_MAP_POINTS;
+        createAlterMap();
+      }
       else if (bControls[END_GAME].collided(x, y))
         exit(0);
     }
@@ -219,6 +285,8 @@ public:
   {
     if (status == GAME_RUN)
       gameRun();
+    else if (status == GAME_ALTER)
+      gameAlter();
     else
       gameMenu();
   }

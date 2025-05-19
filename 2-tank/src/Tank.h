@@ -45,7 +45,7 @@ public:
   Tank()
   {
     origem = Vector2(600, 400);
-    dir = Vector2(0, 1);
+    dir = Vector2(-std::cos(M_PI / 4), std::sin(M_PI / 4));
     vectorTank = Vector2(1, 0);
     p2 = dir;
     turningRight = false;
@@ -60,9 +60,7 @@ public:
     corners[2] = Vector2(WIDTH / 2, HEIGHT / 2);
     corners[3] = Vector2(-WIDTH / 2, HEIGHT / 2);
     for (int i = 0; i < 4; i++)
-    {
       tankRect[i] = corners[i];
-    }
   }
 
   void setTurningLeft(bool value)
@@ -102,8 +100,7 @@ public:
     dir = dir * -1;
     lastCollision = now;
   }
-  
-  
+
   void projectil(float deltaTime)
   {
 
