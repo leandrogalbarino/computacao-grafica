@@ -1,3 +1,8 @@
+/*
+   main:
+   Inicia, cria, e mantém em loop o jogo, apenas gerencia os cliques e teclas e manda para a classe Game fazer as alterações.
+*/
+
 #include <GL/glut.h>
 #include <GL/freeglut_ext.h> //callback da wheel do mouse.
 #include "gl_canvas2d.h"

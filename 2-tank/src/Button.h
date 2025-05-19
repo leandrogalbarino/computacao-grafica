@@ -1,3 +1,8 @@
+/*
+Button.h:
+  Cria um botao e gerencia ele com base em coordenadas.
+*/
+
 #ifndef __BUTTON_H__
 #define __BUTTON_H__
 
@@ -48,8 +53,8 @@ public:
     this->b = b;
   }
 
-void render()
-{
+  void render()
+  {
     CV::color(r, g, b);
     CV::rectFill(x1, y1, x2, y2);
     CV::color(WHITE);
@@ -59,7 +64,7 @@ void render()
     int textLength = text.length() * CV::getPixelsTextSize();
 
     CV::text(centerX - textLength / 2, centerY, text.c_str());
-}
+  }
 
   // recebe as coordenadas do mouse para tratar clique ou detectar quando o mouse esta em cima do botao
   bool collided(int mx, int my)

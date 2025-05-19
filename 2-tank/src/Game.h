@@ -1,3 +1,19 @@
+/*
+ * GAME.H
+ *
+ * Classe principal que controla o fluxo do jogo:
+ * - Gerencia os estados do jogo (menu, jogando, edição de mapa, game over)
+ * - Controla a interação entre tanque, barris e mapa
+ * - Processa eventos de entrada (teclado/mouse)
+ * - Gerencia a lógica de colisões e pontuação
+ *
+ * Estados do jogo:
+ * - GAME_MENU: Tela inicial com opções
+ * - GAME_RUN: Jogo em execução
+ * - GAME_ALTER: Modo de edição de mapa
+ * - GAME_OVER/GAME_WIN: Telas de fim de jogo
+ */
+
 #ifndef __GAME_H_
 #define __GAME_H_
 
@@ -8,22 +24,21 @@
 #include "Button.h"
 #include "Vector2.h"
 
+// Definições de estados do jogo
 #define GAME_ALTER -1
 #define GAME_RUN 0
-
 #define GAME_OVER 1
 #define GAME_WIN 2
 #define GAME_MENU 3
-
+// Tipos de jogo
 #define NEW_GAME 0
 #define ALTER_MAP_POINTS 1
+// Termina a execucao
 #define END_GAME 2
+
 #define CLICK 1
 #define N_BUTTONS_MENU 3
 #define BUTTON_ALTER_MAP 3
-
-// #define TYPE_ALTER
-// #define TYPE_NORMAL
 
 class Game
 {
@@ -33,13 +48,13 @@ private:
   int screenHeight;
 
 public:
-  int status;
+  int status; // Estado atual do jogo
   Tank *tank;
   Barrels *barrels;
   Map *map;
   Button bControls[4];
-  std::vector<Vector2> points;
-  int type;
+  std::vector<Vector2> points; // Pontos para edição de mapa
+  int type;                    // Tipo de jogo (normal e mapa editado)
 
   Game(int width, int height, std::mt19937 *generator)
   {
@@ -54,6 +69,7 @@ public:
     createButtons();
   }
 
+  // Cria botão especial para edição de mapa
   void createButtonAlter()
   {
     const int padding = 10;
@@ -73,6 +89,7 @@ public:
     bControls[BUTTON_ALTER_MAP].setMensage("Criar Pista!");
   }
 
+  // Configura os botões
   void createButtons()
   {
     int textWidth = std::max(
@@ -100,6 +117,7 @@ public:
     createButtonAlter();
   }
 
+  // Inicializa os componentes do jogo
   void createGame()
   {
     tank = new Tank();
@@ -109,6 +127,7 @@ public:
     status = GAME_RUN;
   }
 
+  // Limpa os recursos do jogo atual
   void displacerGame()
   {
     points.clear();
@@ -120,6 +139,7 @@ public:
     barrels = nullptr;
   }
 
+  // Inicia um novo jogo normal
   void newGame()
   {
     displacerGame();
@@ -127,6 +147,7 @@ public:
     createGame();
   }
 
+  // Entra no modo de edição de mapa
   void createAlterMap()
   {
     displacerGame();
@@ -134,6 +155,7 @@ public:
     status = GAME_ALTER;
   }
 
+  // Adiciona pontos no modo de edição de mapa
   void createMapAlter(float x, float y, int state)
   {
     if (state == CLICK)
@@ -147,6 +169,7 @@ public:
     }
   }
 
+  // Verifica colisão do tiro do tanque com barris
   void tankShootCollideBarrel()
   {
     if (tank->shoot)
@@ -161,6 +184,7 @@ public:
     }
   }
 
+  // Verifica colisão do tanque com barris
   void tankCollideBarrel()
   {
     Vector2 tankCoord0;
@@ -192,6 +216,7 @@ public:
     }
   }
 
+  // Loop principal quando o jogo está em execução
   void gameRun()
   {
     map->render();
@@ -206,6 +231,7 @@ public:
       status = GAME_WIN;
   }
 
+  // Renderiza o modo de edição de mapa
   void gameAlter()
   {
     bControls[BUTTON_ALTER_MAP].render();
@@ -214,6 +240,7 @@ public:
       CV::circleFill(point, 7, 20);
   }
 
+  // Renderiza o menu/telas de fim de jogo
   void gameMenu()
   {
     char mensageText[50];
@@ -246,7 +273,7 @@ public:
       bControls[i].render();
   }
 
-  // EVENTS
+  // Processa eventos dos botões
   void buttonsEvents(float x, float y, int state)
   {
     if (state == CLICK)
@@ -266,6 +293,7 @@ public:
     }
   }
 
+  // Processa eventos de teclado para controle do tanque
   void keyTankEvents(int key, bool value)
   {
     if (key == 'a' || key == 'A')
@@ -274,6 +302,7 @@ public:
       tank->setTurningRight(value);
   }
 
+  // Processa eventos de mouse para controle do tanque
   void mouseTankEvents(float x, float y, int state)
   {
     tank->setMousePositon(x, y);
@@ -281,6 +310,7 @@ public:
       tank->setProjectil(true);
   }
 
+  // Loop principal do jogo
   void loop()
   {
     if (status == GAME_RUN)

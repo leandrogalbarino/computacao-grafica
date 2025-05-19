@@ -1,3 +1,12 @@
+/*
+  MAP.H
+ Gerencia o mapa do jogo e suas interações:
+  - Cria pistas usando curvas de Bézier
+  - Posiciona barris (inimigos) aleatoriamente
+  - Detecta colisões do tanque e projéteis com a pista
+  - Renderiza todos os elementos do mapa
+ */
+
 #ifndef __MAP_H__
 #define __MAP_H__
 
@@ -11,10 +20,12 @@
 #include <random>
 #include <cstdlib>
 
-#define MAP_DANO_TANK 20
-#define ENEMIES 20
-#define ALTER_MAP_POINTS 1
+// Constantes do jogo
+#define MAP_DANO_TANK 20   // Dano ao tanque por colisão com a pista
+#define ENEMIES 20         // Número máximo de barris/inimigos
+#define ALTER_MAP_POINTS 1 // Modo de edição de pista
 
+// Estrutura para curvas de Bézier (criação da pista)
 struct BezierCurve
 {
   Vector2 p0, p1, p2, p3;
@@ -33,6 +44,14 @@ struct BezierCurve
 class Map
 {
 private:
+  std::vector<BezierCurve> curvas; // Armazena as curvas da pista
+  Tank *tank;                      // Referência ao tanque do jogador
+  Barrels *barrels;                // Gerenciador de barris/inimigos
+  std::mt19937 *gen;               // Gerador de números aleatórios
+  float scale;                     // Escala para pista interna
+  Vector2 pScore;                  // Posição do placar
+
+  // Métodos auxiliares para criação e validação da pista
   bool ccw(Vector2 A, Vector2 B, Vector2 C)
   {
     return (C.y - A.y) * (B.x - A.x) > (B.y - A.y) * (C.x - A.x);
@@ -50,7 +69,6 @@ private:
         ccw(A, B, C) != ccw(A, B, D))
       return true;
 
-    // Casos colineares com sobreposição
     return onSegment(A, C, B) || onSegment(A, D, B) ||
            onSegment(C, A, D) || onSegment(C, B, D);
   }
@@ -60,6 +78,7 @@ private:
     return (abs(i - j) == 1) || (i == 0 && j == N - 1) || (j == 0 && i == N - 1);
   }
 
+  // Funcões para validar a pista.
   bool isTrackValid(std::vector<Vector2> &points)
   {
     int N = points.size();
@@ -93,7 +112,7 @@ private:
     return true;
   }
 
-  // void internalScale
+  // Calcula uma posicão dentro das curvas para o tank
   Vector2 calculateSafePositon(std::vector<Vector2> &pointsInput)
   {
     Vector2 center = calculateCenter(pointsInput);
@@ -102,6 +121,7 @@ private:
     return safePosition;
   }
 
+  // Adiciona a curva as curvas
   void addBezierCurves(std::vector<Vector2> points)
   {
     int size = points.size();
@@ -131,6 +151,7 @@ private:
     return centro * (1.0f / points.size());
   }
 
+  // Calcula uma escala segura para a curva interna
   std::vector<Vector2> internalScale(std::vector<Vector2> points)
   {
     const float minDistance = 500.0f;
@@ -156,7 +177,10 @@ private:
           Vector2 B1 = points[j];
           Vector2 B2 = points[(j + 1) % N];
 
-          if (segmentsIntersect(A1, A2, B1, B2))
+          bool intersects = segmentsIntersect(A1, A2, B1, B2);
+          bool distanciaInvalida = (A1 - A1).length() > minDistance;
+
+          if (intersects || distanciaInvalida)
           {
             scale -= 0.05f;
             scaleValid = false;
@@ -168,6 +192,34 @@ private:
     return (scale > 0.1f) ? innerPoints : std::vector<Vector2>{};
   }
 
+  // Funcão para detectar colisão
+  bool isPointInsideClosedArea(Vector2 point)
+  {
+    int intersections = 0;
+
+    for (const auto &curva : curvas)
+    {
+      Vector2 last = curva.p0;
+      for (float t = 0.01f; t <= 1.0f; t += 0.01f)
+      {
+        Vector2 current = curva.evaluate(t);
+
+        if ((last.y > point.y) != (current.y > point.y))
+        {
+          float xIntersect = (point.y - last.y) * (current.x - last.x) / (current.y - last.y) + last.x;
+          if (point.x < xIntersect)
+          {
+            intersections++;
+          }
+        }
+        last = current;
+      }
+    }
+
+    return (intersections % 2) == 1;
+  }
+
+  // Cria pista com base nos pontos
   void createCurves(std::vector<Vector2> &outerPoints)
   {
     const int N = outerPoints.size();
@@ -185,6 +237,7 @@ private:
     tank->origem = calculateSafePositon(outerPoints);
   }
 
+  // Cria pista aleatória
   void createRandomCurves()
   {
     const int N = 6;
@@ -199,7 +252,7 @@ private:
     // Calcula os pontos externos
     for (int i = 0; i < N; ++i)
     {
-      float angle = 2 * M_PI * i / N;
+      float angle = 2 * PI * i / N;
       float r = radius + dist(*gen);
       float x = r * cos(angle) * stretchX;
       float y = r * sin(angle) * stretchY;
@@ -208,6 +261,7 @@ private:
     createCurves(outerPoints);
   }
 
+  // Posiciona os barris/inimigos
   void createEnemies()
   {
     int created = 0;
@@ -239,46 +293,14 @@ private:
     }
   }
 
-  bool isPointInsideClosedArea(Vector2 point)
-  {
-    int intersections = 0;
-
-    for (const auto &curva : curvas)
-    {
-      Vector2 last = curva.p0;
-      for (float t = 0.01f; t <= 1.0f; t += 0.01f)
-      {
-        Vector2 current = curva.evaluate(t);
-
-        if ((last.y > point.y) != (current.y > point.y))
-        {
-          float xIntersect = (point.y - last.y) * (current.x - last.x) / (current.y - last.y) + last.x;
-          if (point.x < xIntersect)
-          {
-            intersections++;
-          }
-        }
-        last = current;
-      }
-    }
-
-    return (intersections % 2) == 1;
-  }
-
 public:
-  std::vector<BezierCurve> curvas;
-  Tank *tank;
-  Barrels *barrels;
-  std::mt19937 *gen;
-  Vector2 pScore;
-  float scale;
-
   Map(Tank *tank, Barrels *barrels, std::mt19937 *gen) : tank(tank), barrels(barrels), gen(gen)
   {
     scale = 0.6;
     pScore = Vector2(-500 + tank->origem.x, -380 + tank->origem.y);
   }
 
+  // Inicializa o mapa (modo normal ou edição)
   void init(int type, std::vector<Vector2> pointsInput)
   {
     if (type == ALTER_MAP_POINTS)
@@ -326,6 +348,7 @@ public:
     CV::text(pScore, scoreText);
   }
 
+  // Renderiza tudo.
   void render()
   {
     drawCurves();
@@ -334,6 +357,7 @@ public:
     tank->render();
   }
 
+  // Verifica do projetil com o mapa
   void collideProj(Vector2 projectile)
   {
     if (tank->shoot && !isPointInsideClosedArea(projectile))
@@ -342,6 +366,7 @@ public:
     }
   }
 
+  // Verifica colisão do tank com o map
   void collideTank()
   {
     for (int i = 0; i < 4; i++)

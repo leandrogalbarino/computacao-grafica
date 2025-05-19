@@ -1,9 +1,19 @@
+/*  Tank.h
+  -------
+  Este arquivo define a classe `Tank`, responsável por representar o tanque do jogador
+  no jogo. A classe gerencia o movimento, rotação, disparo de projéteis, desenho na tela,
+  detecção de colisões e exibição da barra de vida.
+
+  O tanque se move em uma arena 2D usando vetores para direção e rotação, com suporte a
+  entrada de teclado e mouse. Ele também possui um sistema de cooldown para colisões.
+  */
 #ifndef __TANK_H__
 #define __TANK_H__
 
 #include "gl_canvas2d.h"
 #include "Vector2.h"
 #include <ctime>
+#include <cmath>
 
 #define RED 2
 #define GREEN 3
@@ -15,7 +25,7 @@
 
 #define PROJECTILE_SIZE 5
 
-#define PROJECTILE_SPEED 900
+#define PROJECTILE_SPEED 800
 #define TANK_ROTATION_SPEED 1
 #define TANK_SPEED 90
 
@@ -26,27 +36,33 @@
 class Tank
 {
 public:
+  // Estado de rotação
   bool turningRight;
   bool turningLeft;
+
   int life;
   int score;
-  Vector2 dir, p2;
-  Vector2 vectorTiro, vectorTank;
-  Vector2 origem;
-  Vector2 corners[4];
-  Vector2 tankRect[4];
-  clock_t lastFrame;
+
+  Vector2 dir, p2;    // dir: direção do tanque; p2: posição do mouse (alvo do canhão)
+  Vector2 vectorTiro; // Vetores normalizado de tiro
+  Vector2 origem;     // Posição do centro do tanque
+
+  Vector2 corners[4];  // Cantos originais
+  Vector2 tankRect[4]; // Cantos transformados (após rotação)
+
+  clock_t lastFrame;     // Para calcular deltaTime
+  clock_t lastCollision; // Controle de cooldown de colisão
+
+  // Vetores de controle do projétil
   Vector2 shootVectorNew;
   Vector2 shootVectorOld;
   Vector2 shootVectorDir;
-  clock_t lastCollision;
-  bool shoot;
+  bool shoot; // estado de disparo
 
   Tank()
   {
     origem = Vector2(600, 400);
-    dir = Vector2(-std::cos(M_PI / 4), std::sin(M_PI / 4));
-    vectorTank = Vector2(1, 0);
+    dir = Vector2(-std::cos(PI / 4), std::sin(PI / 4));
     p2 = dir;
     turningRight = false;
     turningLeft = false;
@@ -73,27 +89,29 @@ public:
     turningRight = value;
   }
 
+  // Define o vetor de direção do canhão com base no mouse
   void setMousePositon(float x, float y)
   {
     p2.set(x, y);
   }
 
+  // Realiza outro disparo, apenas quando não tem um outro disparo em andamento.
   void setProjectil(bool value)
   {
     if (shoot && value)
-    {
       return;
-    }
 
     shoot = value;
     if (value)
     {
       shootVectorNew = origem; // <-- Começa da posição do tanque
-      shootVectorOld = origem; // <-- Começa da posição do tanque
+      shootVectorOld = origem;
       shootVectorDir = p2 - origem;
       shootVectorDir.normalize();
     }
   }
+
+  // Atualiza o estado de colisão e aplica dano se necessário
   void UpdateCollision(int life, clock_t now)
   {
     this->life -= life;
@@ -101,13 +119,12 @@ public:
     lastCollision = now;
   }
 
+  // Calcula e desenha a trajetoria do disparo.
   void projectil(float deltaTime)
   {
-
     if (!shoot)
-    {
       return;
-    }
+
     shootVectorOld = shootVectorNew;
     shootVectorNew.x += shootVectorDir.x * PROJECTILE_SPEED * deltaTime;
     shootVectorNew.y += shootVectorDir.y * PROJECTILE_SPEED * deltaTime;
@@ -115,6 +132,7 @@ public:
     CV::circleFill(shootVectorNew, 5, 20);
   }
 
+  // Atualiza o vetor direcão;
   void tankUpdate(float deltaTime)
   {
     float theta = 0;
@@ -143,16 +161,17 @@ public:
     CV::line(0, 0, vectorEsc.x, vectorEsc.y);
   }
 
+  // Calcula a rotacao com base no vetor direcao
   void tankDirection()
   {
-    Vector2 perp(-vectorTank.y, vectorTank.x);
+    Vector2 perp(-dir.y, dir.x);
     for (int i = 0; i < 4; i++)
     {
       float x = corners[i].x;
       float y = corners[i].y;
 
-      tankRect[i].x = x * vectorTank.x + y * perp.x;
-      tankRect[i].y = x * vectorTank.y + y * perp.y;
+      tankRect[i].x = x * dir.x + y * perp.x;
+      tankRect[i].y = x * dir.y + y * perp.y;
     }
   }
 
@@ -187,17 +206,16 @@ public:
 
   void render()
   {
-    // Calcular1 deltaTime  FRAMES POR SEC
+    // Controle de fps
     clock_t now = clock();
     float deltaTime = float(now - lastFrame) / CLOCKS_PER_SEC;
     lastFrame = now;
 
-    tankUpdate(deltaTime); // deltaTime
+    tankUpdate(deltaTime);
     vectorTiro = p2 - origem;
-    vectorTank = dir;
     vectorTiro.normalize();
-    vectorTank.normalize();
-    projectil(deltaTime); // deltaTime
+    dir.normalize();
+    projectil(deltaTime);
 
     CV::translate(origem.x, origem.y);
     drawLife();

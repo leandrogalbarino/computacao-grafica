@@ -1,3 +1,17 @@
+/*
+ * BARRELS.H
+ *
+ * Gerencia a criação, colisão, vida e renderização de barris no jogo.
+ * - Os barris só mostram vida quando danificados para evitar poluição visual
+ * - Sistema otimizado de detecção de colisão com projéteis
+ * - Controle individualizado de vida para cada barril
+ *
+ * Design:
+ * - Barris são representados como círculos vermelhos
+ * - Barra de vida verde/vermelha aparece acima dos barris danificados
+ * - Cada hit reduz 50 de vida (barris começam com 100)
+ */
+
 #ifndef __BARRELS_H__
 #define __BARRELS_H__
 
@@ -26,12 +40,11 @@ private:
   std::vector<Barrel *> barrels;
 
 public:
-
   ~Barrels()
   {
     for (Barrel *b : barrels)
     {
-      delete b; 
+      delete b;
     }
   }
 
@@ -49,6 +62,7 @@ public:
     barrels.push_back(barrel);
   }
 
+  // Desenha barra de vida (só aparece quando danificado)
   void drawLife(Barrel *barrel)
   {
     if (barrel->life <= 0 || barrel->life == barrel->maxLife)
@@ -71,6 +85,7 @@ public:
     }
   }
 
+  // Aplica dano ao barril (retorna true se destruído)
   bool updateBarrelLife(Barrel *barrelToRemove)
   {
     barrelToRemove->life -= 50;
@@ -84,13 +99,13 @@ public:
           delete *it;
           barrels.erase(it);
           return true;
-          // Se matou retorna true
         }
       }
     }
     return false;
   }
 
+  // Verifica colisão entre o segmento
   Barrel *collideBarrel(Vector2 pOld, Vector2 pNew)
   {
 
@@ -111,9 +126,9 @@ public:
     for (auto it = barrels.begin(); it != barrels.end(); ++it)
     {
       Vector2 f = pOld - (*it)->point;
-      float a = d.produtoEscalar(d);
-      float b = 2 * f.produtoEscalar(d);
-      float c_ = f.produtoEscalar(f) - SHOOT_RADIUS * SHOOT_RADIUS;
+      float a = d.dot(d);
+      float b = 2 * f.dot(d);
+      float c_ = f.dot(f) - SHOOT_RADIUS * SHOOT_RADIUS;
       float discriminant = b * b - 4 * a * c_;
 
       if (discriminant >= 0)
@@ -129,7 +144,8 @@ public:
     }
     return nullptr;
   }
-
+  
+  // Renderiza todos os barris
   void drawBarrels()
   {
     CV::color(RED);

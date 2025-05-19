@@ -1,3 +1,6 @@
+
+//Vector2: Função auxiliar para facilitar multiplos calculos de coordenadas.
+
 #ifndef __VECTOR_2_H__
 #define __VECTOR_2_H__
 
@@ -82,7 +85,7 @@ public:
         return (aux);
     }
 
-    float produtoEscalar(Vector2 v2)
+    float dot(Vector2 v2)
     {
         return (x * v2.x + y * v2.y);
     }

@@ -38,17 +38,18 @@
 		</Compiler>
 		<Linker>
 			<Add library="../lib/libfreeglut32.a" />
-			<Add library="../lib/libopengl32.a"/>
-			<Add library="../lib/libglu32.a"/>
+			<Add library="../lib/libopengl32.a" />
+			<Add library="../lib/libglu32.a" />
 		</Linker>
-		<Unit filename="src/Bola.h" />
-		<Unit filename="src/Botao.h" />
-		<Unit filename="src/Relogio.cpp" />
-		<Unit filename="src/Relogio.h" />
+		<Unit filename="src/Barrels.h" />
+		<Unit filename="src/Button.h" />
+		<Unit filename="src/Game.h" />
+		<Unit filename="src/Map.h" />
+		<Unit filename="src/Tank.h" />
 		<Unit filename="src/Vector2.h" />
 		<Unit filename="src/gl_canvas2d.cpp" />
 		<Unit filename="src/gl_canvas2d.h" />
 		<Unit filename="src/main.cpp" />
-
+		<Extensions />
 	</Project>
 </CodeBlocks_project_file>
