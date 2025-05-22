@@ -175,6 +175,13 @@ public:
     }
   }
 
+  void moveTank2(float x, float y)
+  {
+    if (x == y) {
+      printf("igual");
+    }
+  }
+  
   void moveTank(float deltaTime)
   {
     origem.x += TANK_SPEED * dir.x * deltaTime;
