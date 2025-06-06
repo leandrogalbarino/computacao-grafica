@@ -10,11 +10,12 @@
 #include <GL/freeglut_ext.h> //callback da wheel do mouse.
 
 #include "Vector2.h"
+#include "Vector3.h"
 
 #define PI_2 6.28318530717
 #define PI 3.14159265359
 
-#define Y_CANVAS_CRESCE_PARA_CIMA 1
+#define Y_CANVAS_CRESCE_PARA_CIMA 0
 
 class CV // classe Canvas2D
 {
@@ -35,12 +36,12 @@ public:
 
     // desenha um poligono CONVEXO. Para um retangulo, deve-se passar 4 vertices
     static void polygon(float vx[], float vy[], int n_elems);
-    static void polygon(Vector2 v[], int elems);
     static void polygonFill(float vx[], float vy[], int n_elems);
+    static void polygon(Vector2 v[], int elems);
+    static void polygon(Vector3 v[], int elems);
 
     // centro e raio do circulo
     static void circle(float x, float y, float radius, int div);
-    
     static void circle(Vector2 pos, float radius, int div);
 
     static void circleFill(float x, float y, float radius, int div);
@@ -56,7 +57,6 @@ public:
     // desenha texto na coordenada (x,y)
     static void text(float x, float y, const char *t);
     static void text(Vector2 pos, const char *t); // varias funcoes ainda nao tem implementacao. Faca como exercicio
-    static int getPixelsTextSize(); // varias funcoes ainda nao tem implementacao. Faca como exercicio
     static void text(Vector2 pos, int valor);     // varias funcoes ainda nao tem implementacao. Faca como exercicio
     static void text(Vector2 pos, float valor);   // varias funcoes ainda nao tem implementacao. Faca como exercicio
 
