@@ -48,6 +48,11 @@ public:
         Vector2 aux(x - v.x, y - v.y);
         return (aux);
     }
+    Vector2 operator-(const Vector2 &v) const
+    {
+        Vector2 aux(x - v.x, y - v.y);
+        return (aux);
+    }
 
     float length() const
     {

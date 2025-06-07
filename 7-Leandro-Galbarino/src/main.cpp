@@ -8,58 +8,28 @@
 #include "gl_canvas2d.h"
 #include "Vector2.h"
 #include "Vector3.h"
+#include "Bezier.h"
+#include "Objetos3D.h"
 
+#define SCREEN_WIDTH 500
+#define SCREEN_HEIGHT 500
 // #include <cmath>
 // largura e altura inicial da tela . Alteram com o redimensionamento de tela.
-int screenWidth = 500, screenHeight = 500;
-int pointIndex = -1;
+int screenWidth;
+int screenHeight;
+int pointIndex;
 bool mousePressed;
-float _x;
-float _y;
-struct BezierCurve
-{
-   Vector2 p[4];
 
-   Vector2 evaluate(float t) const
-   {
-      float u = 1 - t;
-      float tt = t * t;
-      float uu = u * u;
-      float uuu = uu * u;
-      float ttt = tt * t;
-      return p[0] * uuu + p[1] * (3 * uu * t) + p[2] * (3 * u * tt) + p[3] * ttt;
-   }
-};
+Bezier curve;
+Objetos3D object;
+Vector2 origem(200, 200);
 
-BezierCurve v;
-void scale()
-{
-   for (int i = 0; i < 4; i++)
-   {
-      v.p[i] = v.p[i] * 50;
-   }
-}
 void render()
 {
-   CV::translate(200, 200);
-   for (int i = 0; i < 4; i++)
-   {
-      CV::circleFill(v.p[i], 10, 20);
-   }
-
-   CV::color(1);
-   for (int i = 0; i < 4; i++)
-   {
-      Vector2 last = v.p[0];
-      for (float t = 0; t <= 1; t += 0.01)
-      {
-         Vector2 point = v.evaluate(t);
-         CV::line(last, point);
-         last = point;
-      }
-   }
+   CV::translate(origem.x, origem.y);
+   object.render();
+   curve.render();
 }
-
 // funcao chamada toda vez que uma tecla for pressionada.
 void keyboard(int key)
 {
@@ -74,30 +44,14 @@ void keyboardUp(int key)
 void mouse(int button, int state, int wheel, int direction, int x, int y)
 {
 
-   if (state == 0)
+   if (state == 0 && !mousePressed)
    {
-      if (mousePressed)
+      Vector2 p = Vector2(x, y);
+      int i = curve.collide(p, origem);
+      if (i != -1)
       {
-         return;
-      }
-      else
-      {
-         for (int i = 0; i < 4; i++)
-         {
-            int tx = x - 200;
-            int ty = y - 200;
-
-            float dx = v.p[i].x - tx;
-            float dy = v.p[i].y - ty;
-            if (dx * dx + dy * dy < 400) // 10_000
-            {
-               _x = x;
-               _y = y;
-               mousePressed = true;
-               pointIndex = i;
-               return;
-            }
-         }
+         mousePressed = true;
+         pointIndex = i;
       }
    }
    else if (state == 1)
@@ -106,21 +60,42 @@ void mouse(int button, int state, int wheel, int direction, int x, int y)
    }
    else if (state == -2 && mousePressed)
    {
-      v.p[pointIndex].x = x - 200;
-      v.p[pointIndex].y = y - 200;
+      curve.p[pointIndex] = Vector2(x, y) - origem;
+      object.set(curve);
+      object.fillMesh();
    }
+}
+
+void createBezier()
+{
+   Vector2 p0 = Vector2(0, 1);
+   Vector2 p1 = Vector2(3, 5);
+   Vector2 p2 = Vector2(5, 4);
+   Vector2 p3 = Vector2(10, 4);
+   curve.set(p0, p1, p0, p3);
+   curve.scale();
+}
+
+void createObject()
+{
+   object.set(curve);
+   object.fillMesh();
+}
+
+void defaultVariables()
+{
+   screenWidth = SCREEN_WIDTH;
+   screenHeight = SCREEN_HEIGHT;
+   pointIndex = -1;
+   mousePressed = false;
 }
 
 int main(void)
 {
-   v.p[0] = Vector2(0, 1);
-   v.p[1] = Vector2(3, 5);
-   v.p[2] = Vector2(5, 4);
-   v.p[3] = Vector2(10, 4);
-   scale();
-   _x = 0;
-   _y = 0;
-   mousePressed = false;
+   createBezier();
+   createObject();
+   defaultVariables();
+
    CV::init(&screenWidth, &screenHeight, "Leandro Galbarino");
    CV::run();
 }
