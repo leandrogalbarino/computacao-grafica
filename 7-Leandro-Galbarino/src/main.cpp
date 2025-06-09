@@ -11,8 +11,8 @@
 #include "Bezier.h"
 #include "Objetos3D.h"
 
-#define SCREEN_WIDTH 500
-#define SCREEN_HEIGHT 500
+#define SCREEN_WIDTH 1280
+#define SCREEN_HEIGHT 720
 // #include <cmath>
 // largura e altura inicial da tela . Alteram com o redimensionamento de tela.
 int screenWidth;
@@ -27,12 +27,60 @@ Vector2 origem(200, 200);
 void render()
 {
    CV::translate(origem.x, origem.y);
+   // CV::line(Vector2(0 - origem.x, SCREEN_HEIGHT/2 - origem.y),Vector2(SCREEN_WIDTH + origem.x, SCREEN_HEIGHT/2 - origem.y));
+   CV::line(Vector2(SCREEN_WIDTH/2 - origem.x,  - origem.y),Vector2(SCREEN_WIDTH/2 - origem.x, SCREEN_HEIGHT + origem.y));
    object.render();
    curve.render();
 }
 // funcao chamada toda vez que uma tecla for pressionada.
 void keyboard(int key)
 {
+   switch (key)
+   {
+   case 'a':
+      object.angleY -= 0.1f;
+      break; // Rotação Y
+   case 'd':
+      object.angleY += 0.1f;
+      break;
+   case 'w':
+      object.angleX += 0.1f;
+      break; // Rotação X
+   case 's':
+      object.angleX -= 0.1f;
+      break;
+   case 'r':
+      object.angleZ -= 0.1f;
+      break;
+   case 't':
+      object.angleZ += 0.1f;
+      break;
+   case 'q':
+      object.posZ += 10;
+      break; // Translação Z
+   case 'e':
+      object.posZ -= 10;
+      break;
+   case '+':
+      if (object.M < 99 || object.N < 99)
+      {
+         object.M++;
+         object.N++;
+         object.fillMesh();
+      }
+      break;
+   case '-':
+      if (object.M > 3)
+         object.M--;
+      if (object.N > 3)
+         object.N--;
+      object.fillMesh();
+      break;
+   case 'p':
+      object.perspectiva = !object.perspectiva;
+      break;
+   }
+   object.fillMesh(); // Recalcula a malha com novas transformações
 }
 
 // funcao chamada toda vez que uma tecla for liberada

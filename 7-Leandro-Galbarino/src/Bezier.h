@@ -8,7 +8,7 @@ class Bezier
 {
 public:
   Vector2 p[4];
-
+  Vector2 pDraw[4];
   void set(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
   {
     p[0] = p0;
@@ -27,11 +27,11 @@ public:
     return p[0] * uuu + p[1] * (3 * uu * t) + p[2] * (3 * u * tt) + p[3] * ttt;
   }
 
-  void scale()
+  Vector2 *scale()
   {
     for (int i = 0; i < PONTOS_CONTROLE; i++)
     {
-      p[i] = p[i] * 50;
+      pDraw[i] = p[i] * 200;
     }
   }
 
@@ -52,6 +52,14 @@ public:
     return -1;
   }
 
+  void normalizeAll()
+  {
+    for (int i = 0; i < PONTOS_CONTROLE; i++)
+    {
+      p[i].normalize();
+    }
+  }
+
   void render()
   {
     // Pontos de controle
@@ -65,7 +73,7 @@ public:
     CV::color(RED);
     for (int i = 0; i < PONTOS_CONTROLE; i++)
     {
-      Vector2 last = p[0];
+      Vector2 last = pDraw[0];
       for (float t = 0; t <= 1; t += 0.01)
       {
         Vector2 point = evaluate(t);
