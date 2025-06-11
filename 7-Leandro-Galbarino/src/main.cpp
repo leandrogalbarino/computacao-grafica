@@ -11,55 +11,77 @@
 #include "Bezier.h"
 #include "Objetos3D.h"
 
-#define SCREEN_WIDTH 1280
-#define SCREEN_HEIGHT 720
-
+#define SCREEN_WIDTH 1980
+#define SCREEN_HEIGHT 1080
+#define TEXT_POSITON_X SCREEN_HEIGHT - 200
+#define TEXT_POSITON_Y -100
 
 int screenWidth;
 int screenHeight;
 int pointIndex;
 bool mousePressed;
-
 Bezier curve;
 Objetos3D object;
 Vector2 origem(200, 200);
+Vector2 divisor(Vector2(SCREEN_WIDTH / 2 - 600, SCREEN_HEIGHT / 2 - 400));
 Vector2 center(Vector2(SCREEN_WIDTH / 2 - origem.x, SCREEN_HEIGHT / 2 - origem.y));
+
+void drawControls()
+{
+   Vector2 position = Vector2(TEXT_POSITON_X, TEXT_POSITON_Y);
+   CV::text(position.x, position.y + 20, "CONTROLS");
+   CV::text(position.x, position.y, "A e D | Rotacao no Eixo X.");
+   CV::text(position.x, position.y - 20, "W e S | Rotacao no Eixo Y.");
+   CV::text(position.x, position.y - 40, "Q e E | Rotacao no Eixo Z.");
+   CV::text(position.x, position.y - 60, "+ e - | Alterar numero de faces.");
+   CV::text(position.x, position.y - 80, "P | Alterar tipo de perspectiva.");
+}
 
 void render()
 {
    CV::translate(origem.x, origem.y);
-
-   CV::line(Vector2(center.x, -origem.y), Vector2(center.x, SCREEN_HEIGHT + origem.y));
+   CV::line(Vector2(divisor.x, -origem.y), Vector2(divisor.x, SCREEN_HEIGHT + origem.y));
    object.render();
    curve.render();
+   drawControls();
 }
 // funcao chamada toda vez que uma tecla for pressionada.
 void keyboard(int key)
 {
    switch (key)
    {
+   case 'A':
    case 'a':
       object.angleY -= 0.1f;
-      break; // Rotação Y
+      break;
+   case 'D':
    case 'd':
       object.angleY += 0.1f;
       break;
+   case 'W':
    case 'w':
       object.angleX += 0.1f;
-      break; // Rotação X
+      break;
+   case 'S':
    case 's':
       object.angleX -= 0.1f;
       break;
+   case 'Q':
    case 'q':
       object.angleZ -= 0.1f;
       break;
+   case 'E':
    case 'e':
       object.angleZ += 0.1f;
       break;
+   case 'L':
    case 'l':
-      object.posZ +=10;
+      object.posZ += 10;
       break;
-      
+   case 'P':
+   case 'p':
+      object.perspectiva = !object.perspectiva;
+      break;
    case '+':
       if (object.M < 99 || object.N < 99)
       {
@@ -75,11 +97,8 @@ void keyboard(int key)
          object.N--;
       object.fillMesh();
       break;
-   case 'p':
-      object.perspectiva = !object.perspectiva;
-      break;
    }
-   object.fillMesh(); // Recalcula a malha com novas transformações
+   object.fillMesh(); 
 }
 
 // funcao chamada toda vez que uma tecla for liberada
@@ -108,7 +127,7 @@ void mouse(int button, int state, int wheel, int direction, int x, int y)
    else if (state == -2 && mousePressed)
    {
       float offsetY = 170;
-      float offsetX = 200;
+      float offsetX = 500;
       float minX = 0;
       float maxX = center.x - offsetX;
       float minY = 0;
@@ -137,23 +156,23 @@ void mouse(int button, int state, int wheel, int direction, int x, int y)
       }
 
       // Atualizar o objeto com nova curva
-      object.set(curve, center);
+      object.set(curve, divisor);
       object.fillMesh();
    }
 }
 
 void createBezier()
 {
-   Vector2 p0 = Vector2(0, 10);
-   Vector2 p1 = Vector2(0, 35);
-   Vector2 p2 = Vector2(50, 17);
-   Vector2 p3 = Vector2(10, 43);
+   Vector2 p0 = Vector2(0, 0);
+   Vector2 p1 = Vector2(200, 50);
+   Vector2 p2 = Vector2(50, 40);
+   Vector2 p3 = Vector2(100, 380);
    curve.set(p0, p1, p2, p3);
 }
 
 void createObject()
 {
-   object.set(curve, center);
+   object.set(curve, divisor);
    object.fillMesh();
 }
 

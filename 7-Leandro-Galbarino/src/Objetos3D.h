@@ -1,11 +1,20 @@
 
 #ifndef __OBJETOS_3D__
 #define __OBJETOS_3D__
+// Classe que manipula os objetos 3D, a criação dos objetos através de malhas, rotação e transladação, diferentes perpectivas, e renderização do objeto.
 
 #include "Vector2.h"
 #include "Vector3.h"
 #include "Bezier.h"
 #include <string>
+#define TEXT_POSITON_X1 -150
+#define TEXT_POSITON_Y1 -150
+#define TEXT_POSITON_X2 -150
+#define TEXT_POSITON_Y2 -130
+#define POSITON_Z 700
+#define OFF_SET_CENTER 400
+#define M_INIT 20
+#define N_INIT 20
 class Objetos3D
 {
 public:
@@ -17,19 +26,21 @@ public:
   bool perspectiva;
   Vector2 center;
 
+  // INIT do objeto 3D
   void set(Bezier curve, Vector2 center)
   {
     this->curve = curve;
     this->center = center;
-    angleX = angleY = 0, angleZ = 0;
-    posX = 1280 / 2 + 200;
-    posY = 0;
-    posZ = 700;
-    M = 20;
-    N = 20;
     perspectiva = true;
+    angleX = angleY = 0, angleZ = 0;
+    posX = center.x + OFF_SET_CENTER;
+    posY = 0;
+    posZ = POSITON_Z;
+    M = M_INIT;
+    N = N_INIT;
   }
 
+  // Preenche a malha com a curva de bezier dada pelos pontos;
   void fillMesh()
   {
     float passo1 = 2 * PI / M;
@@ -91,12 +102,7 @@ public:
     return Vector3(p.x + tx, p.y + ty, p.z + tz);
   }
 
-  Vector3 transladaZ(Vector3 p, int translate)
-  {
-    p.z = p.z + translate;
-    return p;
-  }
-
+  // Projeção: Perspectiva ou Orgografica
   Vector2 projeta(Vector3 p, int d, bool perspectiva)
   {
     Vector2 p2;
@@ -107,32 +113,35 @@ public:
     }
     else
     {
-      float ortographicScale = 1.0f + (p.z / 1000.0f); // Fator de escala baseado em Z
-      p2.x = (p.x - 50) / ortographicScale;           // Diminui X conforme Z aumenta
-      p2.y = p.y / ortographicScale;                   // Diminui Y conforme Z aumenta
+      float ortographicScale = 1.0f + (p.z / 1000.0f);
+      p2.x = (p.x - 100) / ortographicScale;
+      p2.y = p.y / ortographicScale;
     }
     p2.x += center.x;
     p2.y += center.y;
     return p2;
   }
 
+  // Desenha os triangulos para exibição de um objeto 3D
   void renderTriangle(Vector2 p1, Vector2 p2, Vector2 p3)
   {
     CV::line(p1, p2);
     CV::line(p2, p3);
     CV::line(p3, p1);
-    // Poderia adicionar preenchimento aqui
   }
 
-  Vector3 escala(Vector3 p, int escala)
+  void drawControls()
   {
-    p = p * escala;
-    return p;
+    char text[20];
+    sprintf(text, "Resolucao: M=%d N: %d", M, N);
+    CV::text(TEXT_POSITON_X1, TEXT_POSITON_Y1, perspectiva ? "Modo: Perspectiva" : "Modo: Ortografico");
+    CV::text(TEXT_POSITON_X2, TEXT_POSITON_Y2, text);
   }
 
+  // Renderiza o objeto 3D
   void render()
   {
-    const int d = 500; 
+    const int d = 500;
     CV::color(RED);
     for (int l = 0; l < M; l++)
     {
@@ -142,15 +151,11 @@ public:
         Vector2 p2 = projeta(matriz[l][c + 1], d, perspectiva);
         Vector2 p3 = projeta(matriz[l + 1][c], d, perspectiva);
         Vector2 p4 = projeta(matriz[l + 1][c + 1], d, perspectiva);
-
         renderTriangle(p1, p2, p4);
         renderTriangle(p1, p3, p4);
       }
     }
-    CV::text(-150, -150, perspectiva ? "Modo: Perspectiva" : "Modo: Ortografico");
-    char text[20];
-    sprintf(text, "Resolucao: M=%d N: %d", M, N);
-    CV::text(-150, -130, text);
+    drawControls();
   }
 };
 

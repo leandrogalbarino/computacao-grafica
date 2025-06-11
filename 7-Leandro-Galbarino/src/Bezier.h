@@ -1,14 +1,18 @@
 #ifndef __BEZIER_H__
 #define __BEZIER_H__
+// Classe que manipula a curva de bezier, tem seus pontos e sua equação, renderiza a curva e verifica colisão nos seus pontos para serem atualizados, renderiza a curva e os eixos X e Y para melhor visualização. 
+
 #include "Vector2.h"
 #include "Vector3.h"
-
+#define EIXO_Y  402
+#define EIXO_X 302
 #define PONTOS_CONTROLE 4
 class Bezier
 {
 public:
   Vector2 p[4];
-  Vector2 pDraw[4];
+
+  // Init da curva.
   void set(Vector2 p0, Vector2 p1, Vector2 p2, Vector2 p3)
   {
     p[0] = p0;
@@ -17,6 +21,7 @@ public:
     p[3] = p3;
   }
 
+  // Curva de Bezier
   Vector2 evaluate(float t) const
   {
     float u = 1 - t;
@@ -27,15 +32,7 @@ public:
     return p[0] * uuu + p[1] * (3 * uu * t) + p[2] * (3 * u * tt) + p[3] * ttt;
   }
 
-  void scale() 
-  {
-    for (int i = 0; i < PONTOS_CONTROLE; i++)
-    {
-      p[i] = p[i] * 0.1f;
-      
-    }
-  }
-
+  // Para detectar que um dos pontos foi clicado, usado para mudar os pontos curva de bezier
   int collide(Vector2 _p, Vector2 origem)
   {
     for (int i = 0; i < PONTOS_CONTROLE; i++)
@@ -53,14 +50,16 @@ public:
     return -1;
   }
 
-  void normalizeAll()
+  void drawEixoXY()
   {
-    for (int i = 0; i < PONTOS_CONTROLE; i++)
-    {
-      p[i].normalize();
-    }
+    CV::color(RED);
+    CV::line(Vector2(0, 0), Vector2(0, 400));
+    CV::line(Vector2(0, 0), Vector2(300, 0));
+    CV::color(BLACK);
+    CV::text(0, EIXO_Y,"Y");
+    CV::text(EIXO_X, 0, "X");
   }
-
+  // Renderiza a curva e os eixo x e y, para melhor visualização
   void render()
   {
     // Pontos de controle
@@ -69,12 +68,10 @@ public:
     {
       CV::circleFill(p[i], 5, 20);
     }
+    drawEixoXY();
 
-    // Curva de Bezier
     CV::color(RED);
     Vector2 last = p[0];
-    CV::line(Vector2(0, 0), Vector2(0, 400));
-    CV::line(Vector2(0, 0), Vector2(400, 0));
     for (float t = 0; t <= 1; t += 0.01)
     {
       Vector2 point = evaluate(t);
