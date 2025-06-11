@@ -13,8 +13,8 @@
 
 #define SCREEN_WIDTH 1280
 #define SCREEN_HEIGHT 720
-// #include <cmath>
-// largura e altura inicial da tela . Alteram com o redimensionamento de tela.
+
+
 int screenWidth;
 int screenHeight;
 int pointIndex;
@@ -23,12 +23,13 @@ bool mousePressed;
 Bezier curve;
 Objetos3D object;
 Vector2 origem(200, 200);
+Vector2 center(Vector2(SCREEN_WIDTH / 2 - origem.x, SCREEN_HEIGHT / 2 - origem.y));
 
 void render()
 {
    CV::translate(origem.x, origem.y);
-   // CV::line(Vector2(0 - origem.x, SCREEN_HEIGHT/2 - origem.y),Vector2(SCREEN_WIDTH + origem.x, SCREEN_HEIGHT/2 - origem.y));
-   CV::line(Vector2(SCREEN_WIDTH/2 - origem.x,  - origem.y),Vector2(SCREEN_WIDTH/2 - origem.x, SCREEN_HEIGHT + origem.y));
+
+   CV::line(Vector2(center.x, -origem.y), Vector2(center.x, SCREEN_HEIGHT + origem.y));
    object.render();
    curve.render();
 }
@@ -49,18 +50,16 @@ void keyboard(int key)
    case 's':
       object.angleX -= 0.1f;
       break;
-   case 'r':
+   case 'q':
       object.angleZ -= 0.1f;
       break;
-   case 't':
+   case 'e':
       object.angleZ += 0.1f;
       break;
-   case 'q':
-      object.posZ += 10;
-      break; // Translação Z
-   case 'e':
-      object.posZ -= 10;
+   case 'l':
+      object.posZ +=10;
       break;
+      
    case '+':
       if (object.M < 99 || object.N < 99)
       {
@@ -108,32 +107,60 @@ void mouse(int button, int state, int wheel, int direction, int x, int y)
    }
    else if (state == -2 && mousePressed)
    {
-      curve.p[pointIndex] = Vector2(x, y) - origem;
-      object.set(curve);
+      float offsetY = 170;
+      float offsetX = 200;
+      float minX = 0;
+      float maxX = center.x - offsetX;
+      float minY = 0;
+      float maxY = SCREEN_HEIGHT - origem.y - offsetY;
+
+      Vector2 novoPonto = Vector2(x, y) - origem;
+
+      if (novoPonto.x >= minX && novoPonto.x <= maxX &&
+          novoPonto.y >= minY && novoPonto.y <= maxY)
+      {
+         curve.p[pointIndex] = novoPonto;
+      }
+      else
+      {
+         // Corrigir para dentro dos limites
+         if (novoPonto.x < minX)
+            novoPonto.x = minX + 5;
+         if (novoPonto.x > maxX)
+            novoPonto.x = maxX - 5;
+         if (novoPonto.y < minY)
+            novoPonto.y = minY + 5;
+         if (novoPonto.y > maxY)
+            novoPonto.y = maxY - 5;
+
+         curve.p[pointIndex] = novoPonto;
+      }
+
+      // Atualizar o objeto com nova curva
+      object.set(curve, center);
       object.fillMesh();
    }
 }
 
 void createBezier()
 {
-   Vector2 p0 = Vector2(0, 1);
-   Vector2 p1 = Vector2(3, 5);
-   Vector2 p2 = Vector2(5, 4);
-   Vector2 p3 = Vector2(10, 4);
-   curve.set(p0, p1, p0, p3);
-   curve.scale();
+   Vector2 p0 = Vector2(0, 10);
+   Vector2 p1 = Vector2(0, 35);
+   Vector2 p2 = Vector2(50, 17);
+   Vector2 p3 = Vector2(10, 43);
+   curve.set(p0, p1, p2, p3);
 }
 
 void createObject()
 {
-   object.set(curve);
+   object.set(curve, center);
    object.fillMesh();
 }
 
 void defaultVariables()
 {
-   screenWidth = SCREEN_WIDTH;
-   screenHeight = SCREEN_HEIGHT;
+   screenWidth = 1980;
+   screenHeight = 1020;
    pointIndex = -1;
    mousePressed = false;
 }

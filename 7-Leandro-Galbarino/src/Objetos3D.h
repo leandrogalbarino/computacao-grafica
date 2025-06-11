@@ -15,14 +15,16 @@ public:
   float posX, posY, posZ;
   int M, N;
   bool perspectiva;
+  Vector2 center;
 
-  void set(Bezier curve)
+  void set(Bezier curve, Vector2 center)
   {
     this->curve = curve;
+    this->center = center;
     angleX = angleY = 0, angleZ = 0;
-    posX =  1280/2 + 200;
+    posX = 1280 / 2 + 200;
     posY = 0;
-    posZ = 1000;
+    posZ = 700;
     M = 20;
     N = 20;
     perspectiva = true;
@@ -30,7 +32,7 @@ public:
 
   void fillMesh()
   {
-    float passo1 = 2 * PI / M; // angulo azimutal
+    float passo1 = 2 * PI / M;
 
     Vector2 perfil2D[N + 1];
     for (int j = 0; j <= N; j++)
@@ -41,17 +43,19 @@ public:
 
     for (int i = 0; i <= M; i++)
     {
-
-      float ang = i * passo1 + angleY;
+      float ang = i * passo1;
       for (int j = 0; j <= N; j++)
       {
         Vector3 p = Vector3(
             perfil2D[j].x * cos(ang),
-            perfil2D[j].y,
+            perfil2D[j].y * 1.8f,
             perfil2D[j].x * sin(ang));
+
         p = rotacionaX(p, angleX);
+        p = rotacionaY(p, angleY);
         p = rotacionaZ(p, angleZ);
-        p = translada(p, posX, posY, posZ); // Nova translação
+        p = translada(p, posX, posY, posZ);
+
         matriz[i][j] = p;
       }
     }
@@ -62,15 +66,15 @@ public:
     Vector3 pAux = p;
     p.x = pAux.x * cos(ang) - pAux.y * sin(ang);
     p.y = pAux.x * sin(ang) + pAux.y * cos(ang);
-    // z permanece o mesmo
     return p;
   }
 
   Vector3 rotacionaX(Vector3 p, float ang)
   {
     Vector3 pAux = p;
-    p.y = pAux.y * cos(ang) + pAux.z * sin(ang);
-    p.z = (pAux.y) * -1 * sin(ang) + pAux.z * cos(ang);
+    p.y = pAux.y * cos(ang) - pAux.z * sin(ang);
+    p.z = pAux.y * sin(ang) + pAux.z * cos(ang);
+
     return p;
   }
 
@@ -78,7 +82,7 @@ public:
   {
     Vector3 pAux = p;
     p.x = pAux.x * cos(ang) + pAux.z * sin(ang);
-    p.z = (pAux.x) * -1 * sin(ang) + pAux.z * cos(ang);
+    p.z = -pAux.x * sin(ang) + pAux.z * cos(ang);
     return p;
   }
 
@@ -98,15 +102,17 @@ public:
     Vector2 p2;
     if (perspectiva)
     {
-      p2.x = p.x * d / p.z;
-      p2.y = p.y * d / p.z;
+      p2.x = p.x * d / (p.z + d);
+      p2.y = p.y * d / (p.z + d);
     }
     else
     {
-      p2.x = p.x;
-      p2.y = p.y;
-      p.z = p.z + 400;
+      float ortographicScale = 1.0f + (p.z / 1000.0f); // Fator de escala baseado em Z
+      p2.x = (p.x - 50) / ortographicScale;           // Diminui X conforme Z aumenta
+      p2.y = p.y / ortographicScale;                   // Diminui Y conforme Z aumenta
     }
+    p2.x += center.x;
+    p2.y += center.y;
     return p2;
   }
 
@@ -126,7 +132,7 @@ public:
 
   void render()
   {
-    const int d = 400; // Distância da câmera para projeção (pode ajustar depois)
+    const int d = 500; 
     CV::color(RED);
     for (int l = 0; l < M; l++)
     {
@@ -141,10 +147,10 @@ public:
         renderTriangle(p1, p3, p4);
       }
     }
-    CV::text(10, 20, perspectiva ? "Modo: Perspectiva" : "Modo: Ortografico");
+    CV::text(-150, -150, perspectiva ? "Modo: Perspectiva" : "Modo: Ortografico");
     char text[20];
     sprintf(text, "Resolucao: M=%d N: %d", M, N);
-    CV::text(10, 40, text);
+    CV::text(-150, -130, text);
   }
 };
 

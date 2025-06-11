@@ -27,11 +27,12 @@ public:
     return p[0] * uuu + p[1] * (3 * uu * t) + p[2] * (3 * u * tt) + p[3] * ttt;
   }
 
-  Vector2 *scale()
+  void scale() 
   {
     for (int i = 0; i < PONTOS_CONTROLE; i++)
     {
-      pDraw[i] = p[i] * 200;
+      p[i] = p[i] * 0.1f;
+      
     }
   }
 
@@ -71,15 +72,14 @@ public:
 
     // Curva de Bezier
     CV::color(RED);
-    for (int i = 0; i < PONTOS_CONTROLE; i++)
+    Vector2 last = p[0];
+    CV::line(Vector2(0, 0), Vector2(0, 400));
+    CV::line(Vector2(0, 0), Vector2(400, 0));
+    for (float t = 0; t <= 1; t += 0.01)
     {
-      Vector2 last = pDraw[0];
-      for (float t = 0; t <= 1; t += 0.01)
-      {
-        Vector2 point = evaluate(t);
-        CV::line(last, point);
-        last = point;
-      }
+      Vector2 point = evaluate(t);
+      CV::line(last, point);
+      last = point;
     }
   }
 };

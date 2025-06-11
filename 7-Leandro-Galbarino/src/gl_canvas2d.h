@@ -18,7 +18,7 @@
 #define GREEN 3
 #define BLACK 0
 
-#define Y_CANVAS_CRESCE_PARA_CIMA 0
+#define Y_CANVAS_CRESCE_PARA_CIMA 1
 
 class CV // classe Canvas2D
 {
