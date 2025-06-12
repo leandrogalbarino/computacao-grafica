@@ -17,6 +17,7 @@
 #define RED 2
 #define GREEN 3
 #define BLACK 0
+#define WHITE 13
 
 #define Y_CANVAS_CRESCE_PARA_CIMA 1
 
