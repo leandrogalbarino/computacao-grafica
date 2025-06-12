@@ -72,6 +72,64 @@ public:
     }
   }
 
+  //Eventos do teclado para alterar a projeção do objeto 3D.
+  void eventsKey(int key)
+  {
+    switch (key)
+    {
+    case 'A':
+    case 'a':
+      angleY -= 0.1f;
+      break;
+    case 'D':
+    case 'd':
+      angleY += 0.1f;
+      break;
+    case 'W':
+    case 'w':
+      angleX += 0.1f;
+      break;
+    case 'S':
+    case 's':
+      angleX -= 0.1f;
+      break;
+    case 'Q':
+    case 'q':
+      angleZ -= 0.1f;
+      break;
+    case 'E':
+    case 'e':
+      angleZ += 0.1f;
+      break;
+    case 'L':
+    case 'l':
+      posY += 10;
+      break;
+    case 'K':
+    case 'k':
+      posY -= 10;
+      break;
+    case 'P':
+    case 'p':
+      perspectiva = !perspectiva;
+      break;
+    case '+':
+      if (M < 99 || N < 99)
+      {
+        M++;
+        N++;
+      }
+      break;
+    case '-':
+      if (M > 3)
+        M--;
+      if (N > 3)
+        N--;
+      break;
+    }
+    fillMesh();
+  }
+
   Vector3 rotacionaZ(Vector3 p, float ang)
   {
     Vector3 pAux = p;
