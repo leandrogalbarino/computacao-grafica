@@ -23,7 +23,10 @@ public:
   float angleX, angleY, angleZ;
   float posX, posY, posZ;
   int M, N;
-  bool perspectiva;
+  bool perspective;
+  float heightPerTurn; // nova variável
+  bool springMode;     // opcional, para alternar entre revolução comum e mola
+
   Vector2 center;
 
   // INIT do objeto 3D
@@ -31,13 +34,15 @@ public:
   {
     this->curve = curve;
     this->center = center;
-    perspectiva = true;
+    perspective = true;
     angleX = angleY = 0, angleZ = 0;
     posX = center.x + OFF_SET_CENTER;
     posY = 0;
     posZ = POSITON_Z;
     M = M_INIT;
     N = N_INIT;
+    heightPerTurn = 5.0f;
+    springMode = false;
   }
 
   // Preenche a malha com a curva de bezier dada pelos pontos;
@@ -54,13 +59,17 @@ public:
 
     for (int i = 0; i <= M; i++)
     {
+      float deslocamentoVertical = springMode ? i * heightPerTurn : 0.0f;
       float ang = i * passo1;
+
       for (int j = 0; j <= N; j++)
       {
+        Vector2 base = curve.evaluate((float)j / N);
+
         Vector3 p = Vector3(
-            perfil2D[j].x * cos(ang),
-            perfil2D[j].y * 1.8f,
-            perfil2D[j].x * sin(ang));
+            base.x * cos(ang),
+            base.y + deslocamentoVertical,
+            base.x * sin(ang));
 
         p = rotacionaX(p, angleX);
         p = rotacionaY(p, angleY);
@@ -72,7 +81,7 @@ public:
     }
   }
 
-  //Eventos do teclado para alterar a projeção do objeto 3D.
+  // Eventos do teclado para alterar a projeção do objeto 3D.
   void eventsKey(int key)
   {
     switch (key)
@@ -111,7 +120,20 @@ public:
       break;
     case 'P':
     case 'p':
-      perspectiva = !perspectiva;
+      perspective = !perspective;
+      break;
+    case 'M':
+    case 'm':
+      springMode = !springMode;
+      break;
+    case 'Z':
+    case 'z':
+      heightPerTurn += 1.0f;
+      break;
+    case 'X':
+    case 'x':
+      if (heightPerTurn > 1.0f)
+        heightPerTurn -= 1.0f;
       break;
     case '+':
       if (M < 99 || N < 99)
@@ -171,9 +193,9 @@ public:
     }
     else
     {
-      float ortographicScale = 1.0f + (p.z / 1000.0f);
-      p2.x = (p.x - 100) / ortographicScale;
-      p2.y = p.y / ortographicScale;
+      float escala = 0.5f;
+      p2.x = p.x * escala;
+      p2.y = p.y * escala;
     }
     p2.x += center.x;
     p2.y += center.y;
@@ -192,7 +214,7 @@ public:
   {
     char text[20];
     sprintf(text, "Resolucao: M=%d N: %d", M, N);
-    CV::text(TEXT_POSITON_X1, TEXT_POSITON_Y1, perspectiva ? "Modo: Perspectiva" : "Modo: Ortografico");
+    CV::text(TEXT_POSITON_X1, TEXT_POSITON_Y1, perspective ? "Modo: Perspectiva" : "Modo: Ortografico");
     CV::text(TEXT_POSITON_X2, TEXT_POSITON_Y2, text);
   }
 
@@ -205,10 +227,10 @@ public:
     {
       for (int c = 0; c < N; c++)
       {
-        Vector2 p1 = projeta(matriz[l][c], d, perspectiva);
-        Vector2 p2 = projeta(matriz[l][c + 1], d, perspectiva);
-        Vector2 p3 = projeta(matriz[l + 1][c], d, perspectiva);
-        Vector2 p4 = projeta(matriz[l + 1][c + 1], d, perspectiva);
+        Vector2 p1 = projeta(matriz[l][c], d, perspective);
+        Vector2 p2 = projeta(matriz[l][c + 1], d, perspective);
+        Vector2 p3 = projeta(matriz[l + 1][c], d, perspective);
+        Vector2 p4 = projeta(matriz[l + 1][c + 1], d, perspective);
         renderTriangle(p1, p2, p4);
         renderTriangle(p1, p3, p4);
       }

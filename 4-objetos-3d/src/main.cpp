@@ -19,7 +19,7 @@
 #define SCREEN_WIDTH 1980
 #define SCREEN_HEIGHT 1080
 #define TEXT_POSITON_X SCREEN_HEIGHT - 200
-#define TEXT_POSITON_Y -80
+#define TEXT_POSITON_Y -40
 
 int screenWidth;
 int screenHeight;
@@ -35,7 +35,7 @@ void drawControls()
 {
    Vector2 position = Vector2(TEXT_POSITON_X, TEXT_POSITON_Y);
    CV::color(BLACK);
-   CV::rectFill(Vector2(TEXT_POSITON_X - 10, TEXT_POSITON_Y + 15), Vector2(TEXT_POSITON_X + 350, TEXT_POSITON_Y - 110));
+   CV::rectFill(Vector2(TEXT_POSITON_X - 10, TEXT_POSITON_Y + 15), Vector2(TEXT_POSITON_X + 350, TEXT_POSITON_Y - 150));
 
    CV::color(WHITE);
    CV::text(position.x, position.y, "CONTROLES");
@@ -44,6 +44,8 @@ void drawControls()
    CV::text(position.x, position.y - 60, "Q e E | Rotacao no Eixo Z.");
    CV::text(position.x, position.y - 80, "+ e - | Alterar numero de faces.");
    CV::text(position.x, position.y - 100, "P | Alterar tipo de perspectiva.");
+   CV::text(position.x, position.y - 120, "M | Modo mola.");
+   CV::text(position.x, position.y - 140, "Z e X | Alterar mola.");
 }
 
 // Desenha a linha divisoria entre o Objeto 3D e a curva de Bezier.

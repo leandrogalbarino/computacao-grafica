@@ -1,1 +1,6 @@
 main.exe
+
+.vscode
+_bin
+_obj
+*.rar
