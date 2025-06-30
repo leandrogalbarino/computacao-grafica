@@ -31,8 +31,9 @@
 
 #define SCREEN_X 500
 #define SCREEN_Y 500
+const int MAX_ASTEROIDS = 200;
 
-int polygonMode = 1;
+int polygonMode = 0;
 
 float rx = 0, rz = 0; // parametros de rotacao do objeto.
 
@@ -48,6 +49,8 @@ float rzSpeed = 0.0f;
 float camSpeed = 0.05f;
 float angleY = 0.0f; // Rotação em torno do eixo Y (horizontal)
 float angleX = 0.0f; // Rotação em torno do eixo X (vertical)
+int frameCount = 0;
+
 struct Sphere
 {
    float x, y, z;
@@ -59,58 +62,7 @@ const int NUM_SPHERES = 20;
 const float MAP_SIZE = 20.0f;     // Limite do espaço (ex: -10 a +10 em x, y, z)
 const float MAP_SIZE_STAR = 2.0f; // Limite do espaço (ex: -10 a +10 em x, y, z)
 
-void onInit()
-{
-   srand(time(NULL)); // Semente para aleatoriedade
-
-   for (int i = 0; i < NUM_SPHERES; i++)
-   {
-      Sphere s;
-
-      float distanciaFrente = 10.0f; // distância à frente da câmera
-      float variacaoLateral = 5.0f;  // variação lateral (esquerda/direita)
-      float variacaoVertical = 3.0f; // variação vertical (cima/baixo)
-
-      // Gera um ponto na frente da câmera
-      float baseX = camX + dirX * distanciaFrente;
-      float baseY = camY + dirY * distanciaFrente;
-      float baseZ = camZ + dirZ * distanciaFrente;
-
-      // Variação aleatória ao redor da direção
-      float offsetX = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoLateral;
-      float offsetY = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoVertical;
-      float offsetZ = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoLateral;
-
-      // Gera posição final
-      s.x = baseX + offsetX;
-      s.y = baseY + offsetY;
-      s.z = baseZ + offsetZ;
-      spheres.push_back(s);
-   }
-
-   for (int i = 0; i < 100; i++)
-   {
-      Sphere s;
-      s.x = ((float)rand() / RAND_MAX) * MAP_SIZE - MAP_SIZE / 2.0f;
-      s.y = ((float)rand() / RAND_MAX) * MAP_SIZE - MAP_SIZE / 2.0f;
-      s.z = ((float)rand() / RAND_MAX) * MAP_SIZE - MAP_SIZE / 2.0f;
-      stars.push_back(s);
-   }
-
-   glMatrixMode(GL_PROJECTION);
-   glLoadIdentity();
-   gluPerspective(abertura, aspect, znear, zfar);
-   glMatrixMode(GL_MODELVIEW);
-
-   glClearColor(0, 0, 0, 1);
-
-   // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-
-   glEnable(GL_DEPTH_TEST);
-}
-
-void desenharEstrelas()
+void drawStars()
 {
    glPointSize(1.0f); // Tamanho bem pequeno
    glBegin(GL_POINTS);
@@ -122,55 +74,39 @@ void desenharEstrelas()
    glEnd();
 }
 
-////////////////////////////////////////////////////////////////////////////////////////
+void drawAsteroids()
+{
+   for (const Sphere &s : spheres)
+   {
+      glPushMatrix();
+      glColor3f(0.5, 0.5, 0.5); // Cor da esfera
+      glTranslatef(s.x, s.y, s.z);
+      glutSolidSphere(0.5, 16, 16); // Raio 0.5, 16 slices e stacks
+      glPopMatrix();
+   }
+}
+
 void render(void)
 {
    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
    gluPerspective(abertura, aspect, znear, zfar);
 
    glMatrixMode(GL_MODELVIEW);
    glLoadIdentity();
-
    gluLookAt(camX, camY, camZ,
              camX + dirX, camY + dirY, camZ + dirZ,
-             upX, upY, upZ); // vetor "para cima"
-   desenharEstrelas();
+             upX, upY, upZ);
 
-   for (const Sphere &s : spheres)
-   {
-      glPushMatrix();
-      glColor3f(0.7f, 0.7f, 0.7f); // Cor da esfera
-      glTranslatef(s.x, s.y, s.z);
-      glutSolidSphere(0.5, 16, 16); // Raio 0.5, 16 slices e stacks
-      glPopMatrix();
-   }
+   // Atualiza a posição da luz com base no mundo (não na câmera)
+   GLfloat light_pos[] = {5.0f, 0.0f, 5.0f, 1.0f};
+   glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 
-   // glRotatef((GLfloat)rx, 0.0f, 1.0f, 0.0f);
-   // glRotatef((GLfloat)rz, 1.0f, 0.0f, 0.0f);
-
-   // todos os objetos estao definidos na origem do sistema global fixo
-   // e sao transladados para a posicao destino.
-   glColor3f(1, 1, 1);
-
-   // glVertex*(), glColor*(),glIndex*(), glNormal*(), glTextCoord*() e glMaterial*()
-
-   //    Marca o início de uma lista de vértices que descrevem uma primitiva geométrica. O parâmetro mode pode ser uma das 10 primitivas geométricas descritas anteriormente
-
-   //    glVertex3d();
-   //    glColor*(), glNormal*(), glFog*(), glLight*(), glMaterial*(),
-   // glRotate*(), glTranslate*(), glScale*()
-   // bule 3
-   glColor3f(0, 0, 1);
-   glutSolidTeapot(1.2);
+   drawStars();
+   drawAsteroids();
 
    glutSwapBuffers();
-
-   //  void glPointSize(GLfloat size)
-   // void glLineWidth(GLfloat width):
-   // void glPolygonMode(GLenum face, GLenum mode);
 }
 
 void keyboard(unsigned char key, int x, int y)
@@ -193,6 +129,10 @@ void keyboard(unsigned char key, int x, int y)
    case 's':
       rzSpeed = -5.0f;
       break;
+   case 'p':
+      polygonMode = (polygonMode == 1) ? 0 : 1;
+      glPolygonMode(GL_FRONT_AND_BACK, polygonMode ? GL_FILL : GL_LINE);
+      break;
    }
 }
 
@@ -212,21 +152,91 @@ void keyboardUp(unsigned char key, int x, int y)
    }
 }
 
-int frameCount = 0;
+void createAsteroids()
+{
+   for (int i = 0; i < NUM_SPHERES; i++)
+   {
+      Sphere s;
+
+      float distanciaFrente = 20.0f + static_cast<float>(rand()) / RAND_MAX * (50.0f - 20.0f);
+      float variacaoLateral = 7.0f;  // variação lateral (esquerda/direita)
+      float variacaoVertical = 7.0f; // variação vertical (cima/baixo)
+
+      // Gera um ponto na frente da câmera
+      float baseX = camX + dirX * distanciaFrente;
+      float baseY = camY + dirY * distanciaFrente;
+      float baseZ = camZ + dirZ * distanciaFrente;
+
+      // Variação aleatória ao redor da direção
+      float offsetX = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoLateral;
+      float offsetY = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoVertical;
+      float offsetZ = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoLateral;
+
+      // Gera posição final
+      s.x = baseX + offsetX;
+      s.y = baseY + offsetY;
+      s.z = baseZ + offsetZ;
+      spheres.push_back(s);
+   }
+}
+
+void createStars()
+{
+   for (int i = 0; i < 100; i++)
+   {
+      Sphere s;
+      s.x = ((float)rand() / RAND_MAX) * MAP_SIZE - MAP_SIZE / 2.0f;
+      s.y = ((float)rand() / RAND_MAX) * MAP_SIZE - MAP_SIZE / 2.0f;
+      s.z = ((float)rand() / RAND_MAX) * MAP_SIZE - MAP_SIZE / 2.0f;
+      stars.push_back(s);
+   }
+}
+
+void onInit()
+{
+   srand(time(NULL));
+   createAsteroids();
+   createStars();
+
+   glMatrixMode(GL_PROJECTION);
+   glLoadIdentity();
+   gluPerspective(abertura, 800, znear, zfar);
+   glMatrixMode(GL_MODELVIEW);
+
+   glClearColor(0, 0, 0, 1);
+
+   // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+   glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+   glEnable(GL_DEPTH_TEST);
+
+   glEnable(GL_LIGHTING);
+   glEnable(GL_LIGHT0);
+
+   GLfloat light_pos[] = {5.0f, 0.0f, 5.0f, 1.0f}; // luz lateral
+   GLfloat light_amb[] = {0.05f, 0.05f, 0.05f, 1.0f};
+   GLfloat light_dif[] = {1.0f, 1.0f, 1.0f, 1.0f}; // luz bem forte para um lado
+   GLfloat light_spe[] = {1.0f, 1.0f, 1.0f, 1.0f};
+
+   glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
+   glLightfv(GL_LIGHT0, GL_AMBIENT, light_amb);
+   glLightfv(GL_LIGHT0, GL_DIFFUSE, light_dif);
+   glLightfv(GL_LIGHT0, GL_SPECULAR, light_spe);
+
+   glEnable(GL_COLOR_MATERIAL);
+}
 
 void updateStars()
 {
    for (Sphere &star : stars)
    {
-      // Distância da estrela até a câmera
       float dx = star.x - camX;
       float dy = star.y - camY;
       float dz = star.z - camZ;
 
       float distancia = sqrt(dx * dx + dy * dy + dz * dz);
 
-      // Se estiver muito perto da câmera, reposiciona para longe
-      if (distancia < 40.0f)
+      // Se estiver muito perto da câmera, reposiciona para longew
+      if (distancia < 90.0f)
       {
          float distanciaNova = 100.0f;
 
@@ -237,9 +247,59 @@ void updateStars()
       }
    }
 }
+
+void updateAsteroids()
+{
+
+   frameCount++;
+   if (spheres.size() < MAX_ASTEROIDS && frameCount >= 20)
+   {
+      frameCount = 0;
+      Sphere s;
+
+      float distanciaFrente = 60.0f;  // distância à frente da câmera
+      float variacaoLateral = 8.0f;   // variação lateral (esquerda/direita)
+      float variacaoVertical = 15.0f; // variação vertical (cima/baixo)
+
+      // Gera um ponto na frente da câmera
+      float baseX = camX + dirX * distanciaFrente;
+      float baseY = camY + dirY * distanciaFrente;
+      float baseZ = camZ + dirZ * distanciaFrente;
+
+      // Variação aleatória ao redor da direção
+      float offsetX = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoLateral;
+      float offsetY = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoVertical;
+      float offsetZ = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoLateral;
+
+      // Gera posição final
+      s.x = baseX + offsetX;
+      s.y = baseY + offsetY;
+      s.z = baseZ + offsetZ;
+      spheres.push_back(s);
+   }
+}
+
+void cleanOldAsteroids()
+{
+   std::vector<Sphere> novos;
+   for (Sphere &s : spheres)
+   {
+      // Verifica se o asteroide ainda está à frente da câmera
+      float dx = s.x - camX;
+      float dy = s.y - camY;
+      float dz = s.z - camZ;
+
+      float dist = dx * dirX + dy * dirY + dz * dirZ; // projeção na direção
+      if (dist > -10.0f)
+      {
+         novos.push_back(s); // ainda está visível ou próximo
+      }
+   }
+   spheres = novos;
+}
+
 void update(int value)
 {
-   // Atualiza ângulos e câmera (já existente)
    angleY += rxSpeed * 0.016f;
    angleX += rzSpeed * 0.016f;
 
@@ -258,38 +318,9 @@ void update(int value)
    camX += dirX * camSpeed;
    camY += dirY * camSpeed;
    camZ += dirZ * camSpeed;
-
-   // Incrementa contador de frames
-   frameCount++;
-
-   // A cada 60 frames (~1 segundo), adiciona uma nova esfera
-   if (frameCount >= 20)
-   {
-      frameCount = 0;
-      Sphere s;
-
-      float distanciaFrente = 50.0f; // distância à frente da câmera
-      float variacaoLateral = 5.0f;  // variação lateral (esquerda/direita)
-      float variacaoVertical = 3.0f; // variação vertical (cima/baixo)
-
-      // Gera um ponto na frente da câmera
-      float baseX = camX + dirX * distanciaFrente;
-      float baseY = camY + dirY * distanciaFrente;
-      float baseZ = camZ + dirZ * distanciaFrente;
-
-      // Variação aleatória ao redor da direção
-      float offsetX = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoLateral;
-      float offsetY = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoVertical;
-      float offsetZ = ((float)rand() / RAND_MAX - 0.5f) * 2.0f * variacaoLateral;
-
-      // Gera posição final
-      s.x = baseX + offsetX;
-      s.y = baseY + offsetY;
-      s.z = baseZ + offsetZ;
-      spheres.push_back(s);
-   }
+   updateAsteroids();
    updateStars();
-
+   cleanOldAsteroids();
    glutPostRedisplay();
    glutTimerFunc(16, update, 0);
 }
@@ -332,9 +363,9 @@ int main()
    // funções para tratamento de teclado ou botão de mouse
    glutKeyboardFunc(keyboard);
    glutKeyboardUpFunc(keyboardUp);
-   glutMouseFunc(MouseFunc);
+   // glutMouseFunc(MouseFunc);
    // trata movimento do mouse, enquanto algum botão estiver pressionado.
-   glutMotionFunc(MotionFunc);
+   // glutMotionFunc(MotionFunc);
 
    glutTimerFunc(0, update, 0); // <== inicia loop de atualização
 
