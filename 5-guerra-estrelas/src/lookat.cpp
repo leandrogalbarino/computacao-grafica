@@ -31,6 +31,71 @@
 
 #define SCREEN_X 500
 #define SCREEN_Y 500
+
+GLuint texID;
+
+#pragma pack(push, 1)
+typedef struct {
+    unsigned short type;
+    unsigned int size;
+    unsigned short reserved1, reserved2;
+    unsigned int offset;
+} BMPHeader;
+
+typedef struct {
+    unsigned int size;
+    int width, height;
+    unsigned short planes;
+    unsigned short bitCount;
+    unsigned int compression;
+    unsigned int sizeImage;
+    int xPelsPerMeter, yPelsPerMeter;
+    unsigned int clrUsed, clrImportant;
+} BMPInfoHeader;
+#pragma pack(pop)
+
+// Função para carregar BMP (24 bits, sem compressão)
+unsigned char* LoadBMP(const char* filename, int* width, int* height) {
+    FILE* f = fopen(filename, "rb");
+    if (!f) return NULL;
+
+    BMPHeader header;
+    fread(&header, sizeof(BMPHeader), 1, f);
+    if (header.type != 0x4D42) { // "BM"
+        fclose(f);
+        return NULL;
+    }
+
+    BMPInfoHeader info;
+    fread(&info, sizeof(BMPInfoHeader), 1, f);
+
+    if (info.bitCount != 24 || info.compression != 0) {
+        fclose(f);
+        return NULL; // só 24 bits sem compressão
+    }
+
+    fseek(f, header.offset, SEEK_SET);
+
+    int size = info.width * info.height * 3;
+    unsigned char* data = (unsigned char*)malloc(size);
+
+    fread(data, size, 1, f);
+    fclose(f);
+
+    // BMP armazena em BGR, inverter para RGB
+    for (int i = 0; i < size; i += 3) {
+        unsigned char tmp = data[i];
+        data[i] = data[i + 2];
+        data[i + 2] = tmp;
+    }
+
+    *width = info.width;
+    *height = info.height;
+
+    return data;
+}
+
+
 const int MAX_ASTEROIDS = 200;
 
 int polygonMode = 0;
@@ -64,7 +129,7 @@ const float MAP_SIZE_STAR = 2.0f; // Limite do espaço (ex: -10 a +10 em x, y, z
 
 void drawStars()
 {
-   glPointSize(1.0f); // Tamanho bem pequeno
+   glPointSize(2.0f); // Tamanho bem pequeno
    glBegin(GL_POINTS);
    glColor3f(1.0f, 1.0f, 1.0f); // Branco brilhante
    for (const Sphere &s : stars)
@@ -76,14 +141,22 @@ void drawStars()
 
 void drawAsteroids()
 {
+   GLUquadric* quad = gluNewQuadric();
+   gluQuadricTexture(quad, GL_TRUE); // ativa coordenadas de textura
+
+   glBindTexture(GL_TEXTURE_2D, texID);
+   glEnable(GL_TEXTURE_2D);
+
    for (const Sphere &s : spheres)
    {
       glPushMatrix();
-      glColor3f(0.5, 0.5, 0.5); // Cor da esfera
       glTranslatef(s.x, s.y, s.z);
-      glutSolidSphere(0.5, 16, 16); // Raio 0.5, 16 slices e stacks
+      gluSphere(quad, 0.5, 16, 16);
       glPopMatrix();
    }
+
+   glDisable(GL_TEXTURE_2D);
+   gluDeleteQuadric(quad);
 }
 
 void render(void)
@@ -200,12 +273,11 @@ void onInit()
 
    glMatrixMode(GL_PROJECTION);
    glLoadIdentity();
-   gluPerspective(abertura, 800, znear, zfar);
+   gluPerspective(abertura, aspect, znear, zfar);  // corrigi 'aspect' aqui, antes era 800 fixo
    glMatrixMode(GL_MODELVIEW);
 
    glClearColor(0, 0, 0, 1);
 
-   // glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
    glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
    glEnable(GL_DEPTH_TEST);
 
@@ -223,7 +295,28 @@ void onInit()
    glLightfv(GL_LIGHT0, GL_SPECULAR, light_spe);
 
    glEnable(GL_COLOR_MATERIAL);
+
+   // Carrega textura BMP e cria textura OpenGL
+   int width, height;
+   unsigned char* image = LoadBMP("./5-guerra-estrelas/src/textura.bmp", &width, &height);
+   if (image) {
+       glGenTextures(1, &texID);
+       glBindTexture(GL_TEXTURE_2D, texID);
+
+       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+       glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+       glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0,
+                    GL_RGB, GL_UNSIGNED_BYTE, image);
+
+       free(image);
+
+       glEnable(GL_TEXTURE_2D);
+   } else {
+       printf("Falha ao carregar textura.\n");
+   }
 }
+
 
 void updateStars()
 {
@@ -340,11 +433,10 @@ void MotionFunc(int x, int y)
    lastMouseY = y;
 }
 
-void MouseFunc(int botao, int estado, int x, int y)
-{
-   // printf("\n%d %d %d %d", botao, estado, x, y);
+void reshape(int w, int h) {
+    aspect = (float)w / (float)h;
+    glViewport(0, 0, w, h);
 }
-
 ////////////////////////////////////////////////////////////////////////////////////////
 int main()
 {
@@ -356,13 +448,14 @@ int main()
    glutInitWindowSize(SCREEN_X, SCREEN_Y);
    glutCreateWindow("Leandro Galbarino");
    onInit();
-
+   
    // Callback mais importante. Usada para especificação da função de desenho. Chamada sempre que o contexto da janela precisa ser reexibido.
    glutDisplayFunc(render);
-
+   
    // funções para tratamento de teclado ou botão de mouse
    glutKeyboardFunc(keyboard);
    glutKeyboardUpFunc(keyboardUp);
+   glutReshapeFunc(reshape);
    // glutMouseFunc(MouseFunc);
    // trata movimento do mouse, enquanto algum botão estiver pressionado.
    // glutMotionFunc(MotionFunc);
